@@ -146,7 +146,7 @@ xTaskNotifyGive(pwm_control_task);
 xTaskNotifyGive(display_update_task);
 
 
-vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(16));
+vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(2));
 
 
 }
@@ -177,10 +177,7 @@ comparatorsBoosters[1]=&pvparameter+sizeof(mcpwm_cmpr_handle_t);
 
 for(;;){
 
-TickType_t xLastWakeTime =  xTaskGetTickCount();
-
 ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
 
 measured = (int) * pointer_ADC_result;
 
@@ -300,9 +297,6 @@ mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
 }
 }
 }
-
-vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(16));
-
 }
 }
 
