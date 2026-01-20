@@ -5,6 +5,7 @@
  *      Author: dario
  */
 
+#include "driver/mcpwm_timer.h"
 #include "main.h"
 #include "esp_log.h"
 #include "driver/mcpwm_prelude.h"
@@ -14,6 +15,25 @@
 #include "freertos/projdefs.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
+
+typedef struct TIMERSDEF {
+
+mcpwm_timer_handle_t timers[3];
+
+mcpwm_oper_handle_t operatorsBooster[2];
+
+mcpwm_oper_handle_t operatorsMosfet[2];
+
+mcpwm_cmpr_handle_t comparatorsBoosters[2];
+
+mcpwm_cmpr_handle_t comparatorsMosfets;
+
+mcpwm_gen_handle_t generatorsBoosters[2];
+
+mcpwm_gen_handle_t generatorsMosfets[2];
+
+
+}timer_def_t; 
 
 
 static void mosfet_signals(mcpwm_gen_handle_t gena, mcpwm_gen_handle_t genb, mcpwm_cmpr_handle_t compa){
@@ -42,7 +62,8 @@ ESP_ERROR_CHECK(mcpwm_generator_set_dead_time(gena, genb, &dead_time_config));
 
 static void timer_mosfet_start(void *pvparameter ){
 
-    mcpwm_timer_handle_t timer = pvparameter;
+    mcpwm_timer_handle_t timer=pvparameter;
+
   
      ESP_ERROR_CHECK(mcpwm_timer_enable(timer));
      ESP_ERROR_CHECK(mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP));
@@ -51,9 +72,44 @@ static void timer_mosfet_start(void *pvparameter ){
 
 }
 
-static void timer_setup (mcpwm_timer_handle_t timer1,mcpwm_timer_handle_t timer2, mcpwm_timer_handle_t timer3  ){
+void booster_selection (void *pvparameter ){
 
-    mcpwm_timer_handle_t timers[3]={timer1, timer2, timer3};
+    void *timers[2]; // timer[0] is timer 1 in main.h, timer[1] is timer2
+	timers[0]=&pvparameter+sizeof(mcpwm_timer_handle_t);
+	timers[1]=&pvparameter+2*sizeof(mcpwm_timer_handle_t);
+ 
+
+
+int booster= gpio_get_level(GPIO_INPUT_BOOSTER);
+
+for(;;) {
+if (booster==0){
+// SIGNAL ZERO MEAN THAT BIG BOOSTER IS USED
+
+     ESP_ERROR_CHECK(mcpwm_timer_enable(timers[0]));
+     ESP_ERROR_CHECK(mcpwm_timer_start_stop(timers[0], MCPWM_TIMER_START_NO_STOP));
+     ESP_ERROR_CHECK(mcpwm_timer_disable(timers[1]));
+
+
+}
+else {
+// SIGNAL 1 MEAN THAT SMALL BOOSTER IS USED
+     ESP_ERROR_CHECK(mcpwm_timer_enable(timers[1]));
+     ESP_ERROR_CHECK(mcpwm_timer_start_stop(timers[1], MCPWM_TIMER_START_NO_STOP));
+     ESP_ERROR_CHECK(mcpwm_timer_disable(timers[0]));
+
+
+}
+
+ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+} 
+}
+
+
+static void timer_setup (timer_def_t timers_config){
+
+    mcpwm_timer_handle_t timers[3]={timers_config.timers[0], timers_config.timers[1], timers_config.timers[2]};
 
 	const char *TAG = "error/message:";
     ESP_LOGI(TAG, "Create timers");
@@ -83,72 +139,66 @@ static void timer_setup (mcpwm_timer_handle_t timer1,mcpwm_timer_handle_t timer2
     }
 
     ESP_LOGI(TAG, "Create operators");
-    mcpwm_oper_handle_t operatorsBooster[3];
     mcpwm_operator_config_t operator_config_booster = {
         .group_id = 0, // operator should be in the same group of the above timers
     };
-    for (int i = 0; i < 3; ++i) {
-        ESP_ERROR_CHECK(mcpwm_new_operator(&operator_config_booster, &operatorsBooster[i]));
+    for (int i = 0; i < 2; ++i) {
+        ESP_ERROR_CHECK(mcpwm_new_operator(&operator_config_booster, &timers_config.operatorsBooster[i]));
     }
 
-    mcpwm_oper_handle_t operatorsMosfet[2];
     mcpwm_operator_config_t operator_config_mosfet = {
         .group_id = 0, // operator should be in the same group of the above timers
     };
     for (int i = 0; i < 2; ++i) {
-        ESP_ERROR_CHECK(mcpwm_new_operator(&operator_config_mosfet, &operatorsMosfet[i]));
+        ESP_ERROR_CHECK(mcpwm_new_operator(&operator_config_mosfet, &timers_config.operatorsMosfet[i]));
     }
 
 
     ESP_LOGI(TAG, "Connect timers and operators with each other");
-        ESP_ERROR_CHECK(mcpwm_operator_connect_timer(operatorsMosfet[0], timers[0]));
-        ESP_ERROR_CHECK(mcpwm_operator_connect_timer(operatorsMosfet[1], timers[0]));
-        ESP_ERROR_CHECK(mcpwm_operator_connect_timer(operatorsBooster[0], timers[1]));
-        ESP_ERROR_CHECK(mcpwm_operator_connect_timer(operatorsBooster[1], timers[2]));
+        ESP_ERROR_CHECK(mcpwm_operator_connect_timer(timers_config.operatorsMosfet[0], timers[0]));
+        ESP_ERROR_CHECK(mcpwm_operator_connect_timer(timers_config.operatorsMosfet[1], timers[0]));
+        ESP_ERROR_CHECK(mcpwm_operator_connect_timer(timers_config.operatorsBooster[0], timers[1]));
+        ESP_ERROR_CHECK(mcpwm_operator_connect_timer(timers_config.operatorsBooster[1], timers[2]));
 
 
     ESP_LOGI(TAG, "Create comparators");
-    mcpwm_cmpr_handle_t comparatorsBoosters[3];
     mcpwm_comparator_config_t compare_config_boosters = {
         .flags.update_cmp_on_tep = true,
     };
-        ESP_ERROR_CHECK(mcpwm_new_comparator(operatorsBooster[0], &compare_config_boosters, &comparatorsBoosters[0]));
+        ESP_ERROR_CHECK(mcpwm_new_comparator(timers_config.operatorsBooster[0], &compare_config_boosters, &timers_config.comparatorsBoosters[0]));
         // init compare for each comparator
-        ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparatorsBoosters[0], COMP_BOOSTER_LOW));
+        ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(timers_config.comparatorsBoosters[0], COMP_BOOSTER_LOW));
 
-        ESP_ERROR_CHECK(mcpwm_new_comparator(operatorsBooster[1], &compare_config_boosters, &comparatorsBoosters[1]));
+        ESP_ERROR_CHECK(mcpwm_new_comparator(timers_config.operatorsBooster[1], &compare_config_boosters, &timers_config.comparatorsBoosters[1]));
         // init compare for each comparator
-        ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparatorsBoosters[1], COMP_BOOSTER_HIGH));
+        ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(timers_config.comparatorsBoosters[1], COMP_BOOSTER_HIGH));
 
 
 
 // MOSFET SIGNAL USE ONLY ONE COMPARATORM THE SECOND FOLLOW AND IS LATCHED BY THE FIRST ONE
-    mcpwm_cmpr_handle_t comparatorsMosfets;
     mcpwm_comparator_config_t compare_config_mosfets = {
         .flags.update_cmp_on_tep = true,
     };
-        ESP_ERROR_CHECK(mcpwm_new_comparator(operatorsMosfet[0], &compare_config_mosfets, &comparatorsMosfets));
+        ESP_ERROR_CHECK(mcpwm_new_comparator(timers_config.operatorsMosfet[0], &compare_config_mosfets, &timers_config.comparatorsMosfets));
         // init compare for each comparator
-        ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparatorsMosfets, COMP_VALUE_MOSFET));
+        ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(timers_config.comparatorsMosfets, COMP_VALUE_MOSFET));
 
     ESP_LOGI(TAG, "Create generators");
-    mcpwm_gen_handle_t generatorsBoosters[2];
     const int gen_gpios_boosters[2] = {GEN_GPIO0, GEN_GPIO1};
     mcpwm_generator_config_t gen_config_booster = {};
     for (int i = 0; i < 2; i++) {
         gen_config_booster.gen_gpio_num = gen_gpios_boosters[i];
-        ESP_ERROR_CHECK(mcpwm_new_generator(operatorsBooster[i], &gen_config_booster, &generatorsBoosters[i]));
+        ESP_ERROR_CHECK(mcpwm_new_generator(timers_config.operatorsBooster[i], &gen_config_booster, &timers_config.generatorsBoosters[i]));
     }
     
-	mcpwm_gen_handle_t generatorsMosfets[2];
     const int gen_gpios_mosfets[2] = {GEN_GPIO2, GEN_GPIO3};
     mcpwm_generator_config_t gen_config_mosfet = {};
     for (int i = 0; i < 2; i++) {
         gen_config_mosfet.gen_gpio_num = gen_gpios_mosfets[i];
-        ESP_ERROR_CHECK(mcpwm_new_generator(operatorsBooster[i], &gen_config_mosfet, &generatorsBoosters[i]));
+        ESP_ERROR_CHECK(mcpwm_new_generator(timers_config.operatorsBooster[i], &gen_config_mosfet, &timers_config.generatorsBoosters[i]));
     }
 
-	mosfet_signals(generatorsMosfets[0], generatorsMosfets[1], comparatorsMosfets);
+	mosfet_signals(timers_config.generatorsMosfets[0], timers_config.generatorsMosfets[1], timers_config.comparatorsMosfets);
 
 }
 

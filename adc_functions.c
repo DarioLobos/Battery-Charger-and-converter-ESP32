@@ -14,6 +14,29 @@
 #include "freertos/projdefs.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
+#include "driver/mcpwm_prelude.h"
+#include "driver/mcpwm_cmpr.h"
+#include "driver/mcpwm_types.h"
+
+typedef struct TIMERSDEF2 {
+
+mcpwm_timer_handle_t timers[3];
+
+mcpwm_oper_handle_t operatorsBooster[2];
+
+mcpwm_oper_handle_t operatorsMosfet[2];
+
+mcpwm_cmpr_handle_t comparatorsBoosters[2];
+
+mcpwm_cmpr_handle_t comparatorsMosfets;
+
+mcpwm_gen_handle_t generatorsBoosters[2];
+
+mcpwm_gen_handle_t generatorsMosfets[2];
+
+
+}timer_def_t2; 
+
 
 
 static const char *TAG = "error/message:";
@@ -76,7 +99,7 @@ adc_oneshot_unit_handle_t adc_handle;
 adc_cali_handle_t adc_cali_handle;
 	}ADC_handler_t;
 
-int * pointer_ADC_result;
+int * pointer_ADC_result =0;
 
 TaskHandle_t pwm_control_task;
 TaskHandle_t display_update_task;
@@ -102,7 +125,7 @@ for(;;){
 vPortEnterCritical(CORE0);
 
 for(int i=0;i<10;i++){
-ESP_ERROR_CHECK(adc_oneshot_read(adc1->adc_handle, ADC1_CHAN0, &adc_raw[i]));
+ESP_ERROR_CHECK(adc_oneshot_read(adc1->adc_handle, ADC1_CHAN1, &adc_raw[i]));
 }
 
 taskEXIT_CRITICAL(CORE0);
@@ -128,6 +151,161 @@ vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(16));
 
 }
 }
+
+void pwm_control (void *pvparameter ){
+
+int minAc= VMINAC * 1000;
+
+int nomAc= VNOMAC * 1000;
+
+int maxAc= VMAXAC * 1000;
+
+int measured = 0;
+
+int offsetL=0;
+
+int newtickH= MIN_COMP_H;
+
+int newtickL= MIN_COMP_L;
+
+int booster;
+
+void *comparatorsBoosters[2];
+
+comparatorsBoosters[0]=&pvparameter;
+comparatorsBoosters[1]=&pvparameter+sizeof(mcpwm_cmpr_handle_t);
+
+for(;;){
+
+TickType_t xLastWakeTime =  xTaskGetTickCount();
+
+ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+
+measured = (int) * pointer_ADC_result;
+
+booster= gpio_get_level(GPIO_INPUT_BOOSTER);
+
+offsetL= abs(measured-nomAc);
+
+if (booster==0){ 
+
+if (measured > nomAc){
+
+	if (measured > maxAc){
+
+mcpwm_comparator_set_compare_value(comparatorsBoosters[0], MIN_COMP_H);
+
+}else if (newtickH>MIN_COMP_H){
+
+newtickH -= 1;
+mcpwm_comparator_set_compare_value(comparatorsBoosters[0], newtickH);
+
+
+} 
+}else if(measured < nomAc){
+
+if (newtickH<MAX_COMP_H){
+newtickH += 1;
+
+mcpwm_comparator_set_compare_value(comparatorsBoosters[0], newtickH);
+
+}
+
+}
+}else if(booster==1){
+
+if (measured > nomAc){
+
+	if (measured > maxAc){
+
+mcpwm_comparator_set_compare_value(comparatorsBoosters[1], MIN_COMP_L);
+
+}else if (newtickL>MIN_COMP_L){
+
+if (offsetL>300){
+if(newtickL-5>MIN_COMP_L){
+
+newtickL -= 5;
+
+mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+}
+
+else if(newtickL-2>MIN_COMP_L){
+
+newtickL -= 2;
+
+mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+}
+
+}else if (offsetL>200){
+
+if(newtickL-2>MIN_COMP_L){
+
+newtickL -= 2;
+
+mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+}
+}else {
+
+newtickL -= 1;
+
+mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+
+}
+}
+}
+
+else if(measured < nomAc){
+
+}else if (newtickL<MAX_COMP_L){
+
+if (offsetL>300){
+if(newtickL+5<MAX_COMP_L){
+
+newtickL += 5;
+
+mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+}
+
+else if(newtickL+2<MAX_COMP_L){
+
+newtickL += 2;
+
+mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+}
+
+}else if (offsetL>200){
+
+if(newtickL+2<MIN_COMP_L){
+
+newtickL += 2;
+
+mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+}
+}else {
+
+newtickL += 1;
+
+mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+
+}
+}
+}
+
+vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(16));
+
+}
+}
+
 
 void adc_setup(	ADC_handler_t adc10, ADC_handler_t adc11,ADC_handler_t adc12, ADC_handler_t adc13, ADC_handler_t adc14){
 

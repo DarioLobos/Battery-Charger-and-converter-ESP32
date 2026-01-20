@@ -27,29 +27,30 @@
 #include "display_functions.c"
 #include "mcpwm_init.c"
 #include "adc_functions.c"
+#include "gpio_init.c"
 
 spi_device_handle_t* spi;
-mcpwm_timer_handle_t timers[3];
+
 ADC_handler_t adc1[5];
 
-void booster_selector_read (void *pvparameter ){
 
-gpio_install_isr_service(int intr_alloc_flags)
-gpio_isr_handler_add(gpio_num_t gpio_num, gpio_isr_t isr_handler, void *args)
+timer_def_t timers_config;
 
-esp_err_t gpio_isr_register(void (*fn)(void*), void *arg, int intr_alloc_flags, gpio_isr_handle_t
-*handle)
- 
-}
+mcpwm_timer_handle_t *timerstotask =&timers_config.timers[0];
+
+mcpwm_cmpr_handle_t *comparatorstotask = &timers_config. comparatorsBoosters[0] ;
+
 
 void app_main(void)
 {
 
 	psi_setup();
 
-	timer_setup (timers[0],timers[1], timers[2] );
+	timer_setup (timers_config);
 
 	adc_setup(adc1[0],adc1[1],adc1[2],adc1[3],adc1[4]); 
+
+	gpio_booster_config ();
 
     xTaskCreatePinnedToCore(display_init, "display_init", (128*160*sizeof(uint16_t)+1024), &spi, TASK_PRIO_4, &xtaskHandleDisplay , CORE0);
 
@@ -59,16 +60,15 @@ void app_main(void)
 // AFTER START AT MINIMUN PWM DUTY CYCLE WILL CHANGE USING THE FUNCTION   
 //  mcpwm_comparator_set_compare_value(comparatorsMosfets[0], new_value_booster));
 
-    xTaskCreatePinnedToCore(timer_mosfet_start, "Mosfet_signal_start", 4096 ,&timers[1] , TASK_PRIO_2, NULL, CORE1);
+    xTaskCreatePinnedToCore(timer_mosfet_start, "Mosfet_signal_start", 4096 ,timers_config.timers[0] , TASK_PRIO_2, NULL, CORE0);
 
-    xTaskCreatePinnedToCore(adc_one_shoot_reading, "adc_reading", 4096 ,&adc1[0] , TASK_PRIO_2, NULL, CORE0);
+    xTaskCreatePinnedToCore(adc_one_shoot_reading, "adc_reading", 4096 ,&adc1[0] , TASK_PRIO_1, NULL, CORE0);
 
-    xTaskCreatePinnedToCore(booster_selector_read, "booster_selector_read", 4096 ,&adc1 , TASK_PRIO_3, NULL, CORE0);
+	xTaskCreatePinnedToCore(booster_selection, "pwm_control", 4096 ,&timerstotask , TASK_PRIO_2, &booster_control_task, CORE1);
+    
+	xTaskCreatePinnedToCore(pwm_control, "pwm_control", 4096 ,&comparatorstotask , TASK_PRIO_1, &pwm_control_task, CORE1);
 
-pending    
-	xTaskCreatePinnedToCore(pwm_control, "pwm_control", 4096 ,NULL , TASK_PRIO_1, pwm_control_task, CORE1);
-
-	xTaskCreatePinnedToCore(display_update, "display_update", (30*30*sizeof(uint16_t)) ,NULL , TASK_PRIO_0, pwm_control_task, tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(display_update, "display_update", (30*30*sizeof(uint16_t)) ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
 
 
 }
