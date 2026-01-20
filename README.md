@@ -24,5 +24,15 @@ in the same folder put both array_modifier and background.c and run the array_mo
 
 in linux sudo ./array_modifier
 
+To prepare the image and scalling to the screen I used the GNU image manipulation program
+
+https://www.gimp.org/
+
+And to dump a bipmap for each character used in screen update i used the lvgl/lv_font_converter
+
+https://github.com/lvgl/lv_font_conv?tab=readme-ov-file
+
+Each bitmap needs Its own array. I am doing this.
+
 when you open the background.c again have plitted the data amd bracket it to do a 2 
 dimensions array. Need to add the name and clear just a couple of symbols after the array.
