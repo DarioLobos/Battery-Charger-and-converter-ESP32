@@ -21,6 +21,7 @@
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
 #include "background.c"
+#include "portmacro.h"
 #include "setuptimebackground.c"
 #include "font_numbers.c"
 
@@ -59,9 +60,13 @@ spi_polling(spi, background_pointers[i][j], true);// ALL THE SCREEN
 
 }
 }
+
+spi_device_polling_end(spi, portMAX_DELAY);
+
 // BACKGROUND READY AT FIRST
 
 // free memory and delete task awaiting next task finish
+
 
 ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
 
@@ -114,6 +119,8 @@ int prev_digits[5];
 int digits;
 
 uint8_t received_digit;
+
+uint8_t commands[10];//unfinished
 
 // Allocate memory for each row in PSRAM
 for (int i = 0; i < ROWAC; i++) {
@@ -168,6 +175,8 @@ digits++;
 		}
 	}
 
+unfinished
+spi_transmit_isr(spi_device_handle_t spi,void* commands, void* data, bool keep_cs_active)
 
 }
 else if((received_digit=((received_voltage%1000-received_voltage%100)/100)>0) | (digits >-1)){
@@ -175,7 +184,7 @@ digits++;
 
 	for (int j=digits;j<(digits*8+8);j++){
 		for(int i=0;i<8;i++){
-			if((font_bits[received_digit][j]&(1<<i))>0)){
+			if((font_bits[received_digit][j]&(1<<i))>0){
 				ac_pointers_to_send[i][j]=ACCOLOR;
 				}
 			else{
@@ -184,6 +193,10 @@ digits++;
 				}
 		}
 	}
+
+unfinished
+spi_transmit_isr(spi_device_handle_t spi,void* commands, void* data, bool keep_cs_active)
+
 
 }
 else if((received_digit=((received_voltage%100-received_voltage%10)/10)>0) | (digits >-1)){
@@ -200,6 +213,9 @@ digits++;
 				}
 		}
 	}
+
+unfinished
+spi_transmit_isr(spi_device_handle_t spi,void* commands, void* data, bool keep_cs_active)
 
 }
 else {
@@ -219,6 +235,10 @@ digits++;
 		}
 	}
 
+unfinished
+spi_transmit_isr(spi_device_handle_t spi,void* commands, void* data, bool keep_cs_active)
+
+
 }
 	for (int j=24;j<32;j++){
 		for(int i=0;i<8;i++){
@@ -231,6 +251,9 @@ digits++;
 				}
 		}
 	}
+
+unfinished
+spi_transmit_isr(spi_device_handle_t spi,void* commands, void* data, bool keep_cs_active)
 
  
 
