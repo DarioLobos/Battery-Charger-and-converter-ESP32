@@ -111,7 +111,9 @@ int received_digits[5];
  
 int prev_digits[5];
 
-uint8_t digits;
+int digits;
+
+uint8_t received_digit;
 
 // Allocate memory for each row in PSRAM
 for (int i = 0; i < ROWAC; i++) {
@@ -127,17 +129,20 @@ for(;;){
 
 ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-digits=0;
+digits=-1;
 
 received_voltage= (int) pvparameter; 
 
 received_voltage= (int)((received_voltage*110000/2350)+5)/10; //transform to AC , eliminate one digit rounding, 
 
-if ((received_voltage-received_voltage%10000)>0){
+if ((received_digit=received_voltage-received_voltage%10000/10000)>0){
 
-	for (int i=0;i<8;i++){
-		for(int j=0;j<8;j++){
-			if(font_bits[i][j]==1){
+digits=0;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
 				ac_pointers_to_send[i][j]=ACCOLOR;
 				}
 			else{
@@ -149,11 +154,11 @@ if ((received_voltage-received_voltage%10000)>0){
 
 }
 
-else if((received_voltage-received_voltage%1000)>0){
-digits=8;
-	for (int i=digits;i<16;i++){
-		for(int j=0;j<8;j++){
-			if(font_bits[i][j]==1){
+else if((received_digit=((received_voltage%10000-received_voltage%1000)/1000)>0) | (digits >-1)){
+digits++; 
+	for (int j=digits*8;j<(digits*8+8);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
 				ac_pointers_to_send[i][j]=ACCOLOR;
 				}
 			else{
@@ -165,11 +170,12 @@ digits=8;
 
 
 }
-else if((received_voltage-received_voltage%100)>0){
-digits=16;
-	for (int i=digits;i<16;i++){
-		for(int j=0;j<8;j++){
-			if(font_bits[i][j]==1){
+else if((received_digit=((received_voltage%1000-received_voltage%100)/100)>0) | (digits >-1)){
+digits++; 
+
+	for (int j=digits;j<(digits*8+8);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0)){
 				ac_pointers_to_send[i][j]=ACCOLOR;
 				}
 			else{
@@ -180,11 +186,12 @@ digits=16;
 	}
 
 }
-else if((received_voltage-received_voltage%10)>0){
-digits=24;
-	for (int i=digits;i<16;i++){
-		for(int j=0;j<8;j++){
-			if(font_bits[i][j]==1){
+else if((received_digit=((received_voltage%100-received_voltage%10)/10)>0) | (digits >-1)){
+digits++; 
+
+	for (int j=digits;j<(digits*8+8);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
 				ac_pointers_to_send[i][j]=ACCOLOR;
 				}
 			else{
@@ -196,10 +203,13 @@ digits=24;
 
 }
 else {
-digits=32;
-	for (int i=digits;i<16;i++){
-		for(int j=0;j<8;j++){
-			if(font_bits[i][j]==1){
+received_digit=(received_voltage-received_voltage)%10;
+
+digits++; 
+
+	for (int j=digits;j<(digits*8+8);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
 				ac_pointers_to_send[i][j]=ACCOLOR;
 				}
 			else{
@@ -210,6 +220,17 @@ digits=32;
 	}
 
 }
+	for (int j=24;j<32;j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[11][j]&(1<<i))>0){
+				ac_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				ac_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
 
  
 
