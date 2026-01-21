@@ -9,6 +9,7 @@
 #include "main.h"
 #include "display_commands.h"
 #include "display_commands.c"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,10 +22,12 @@
 #include "driver/gpio.h"
 #include "background.c"
 #include "setuptimebackground.c"
+#include "font_numbers.c"
 
 TaskHandle_t xtaskHandleDisplay= NULL;
 TaskHandle_t xtaskHandleFrame = NULL;
 
+static volatile uint16_t* ac_pointers_to_send[ROWAC];
 
 static void display_init(void *pvparameter){
 
@@ -108,18 +111,107 @@ int received_digits[5];
  
 int prev_digits[5];
 
-char* temp[5]; 
+uint8_t digits;
+
+// Allocate memory for each row in PSRAM
+for (int i = 0; i < ROWAC; i++) {
+    ac_pointers_to_send[i] = (uint16_t*)heap_caps_malloc(COLAC * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (ac_pointers_to_send[i] == NULL) {
+        printf("Failed to allocate AC row %d\n", i);
+        return;
+        }
+}
 
 
 for(;;){
 
 ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
+digits=0;
+
 received_voltage= (int) pvparameter; 
 
-received_voltage= (int)(received_voltage/10);
+received_voltage= (int)((received_voltage*110000/2350)+5)/10; //transform to AC , eliminate one digit rounding, 
+
+if ((received_voltage-received_voltage%10000)>0){
+
+	for (int i=0;i<8;i++){
+		for(int j=0;j<8;j++){
+			if(font_bits[i][j]==1){
+				ac_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				ac_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
+
+}
+
+else if((received_voltage-received_voltage%1000)>0){
+digits=8;
+	for (int i=digits;i<16;i++){
+		for(int j=0;j<8;j++){
+			if(font_bits[i][j]==1){
+				ac_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				ac_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
 
 
+}
+else if((received_voltage-received_voltage%100)>0){
+digits=16;
+	for (int i=digits;i<16;i++){
+		for(int j=0;j<8;j++){
+			if(font_bits[i][j]==1){
+				ac_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				ac_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
+
+}
+else if((received_voltage-received_voltage%10)>0){
+digits=24;
+	for (int i=digits;i<16;i++){
+		for(int j=0;j<8;j++){
+			if(font_bits[i][j]==1){
+				ac_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				ac_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
+
+}
+else {
+digits=32;
+	for (int i=digits;i<16;i++){
+		for(int j=0;j<8;j++){
+			if(font_bits[i][j]==1){
+				ac_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				ac_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
+
+}
+
+ 
 
 }
 }
