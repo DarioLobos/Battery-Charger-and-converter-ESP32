@@ -10,6 +10,47 @@
 #define CORE0               0
 #define CORE1               1
 
+// Height and width of display
+
+# define ROWARRAY 128
+# define COLARRAY 160
+
+// FRAMES THAT CHANGE
+
+// FRAME SETUP TIME
+# define STRASETL 89
+# define STRASETH 100
+# define STCASETL 16
+# define STCASETH 104
+
+# define STROWARRAY 11
+# define STCOWARRAY 88
+
+# define TIMERASETL 30
+# define TIMERASETH 70
+# define TIMECASETL 11
+# define TIMECASETH 18
+# define TIMECOLOR 0xf165
+# define ROWTIME (TIMERASETH-TIMERASETL)
+# define COLTIME (TIMECASETH-TIMECASETL)
+
+# define ACRASETL 44
+# define ACRASETH 92
+# define ACCASETL 141
+# define ACCASETH 148
+# define ACCOLOR 0x0f47
+# define ROWAC (ACRASETH-ACRASETL)
+# define COLAC (ACCASETH-ACCASETL)
+
+# define DCRASETL 44
+# define DCRASETH 84
+# define DCCASETL 130
+# define DCCASETH 148
+# define DCCOLOR 0x1dee
+# define ROWDC (DCRASETH-DCRASETL)
+# define COLDC (DCCASETH-DCCASETL)
+
+
 // MCPWM
 
 // TIMER 0 FOR MOSFET TIMER 1 AND 2 FOR BOOSTER

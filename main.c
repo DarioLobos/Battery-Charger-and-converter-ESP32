@@ -68,7 +68,7 @@ void app_main(void)
     
 	xTaskCreatePinnedToCore(pwm_control, "pwm_control", 4096 ,&comparatorstotask , TASK_PRIO_1, &pwm_control_task, CORE1);
 
-	xTaskCreatePinnedToCore(display_update, "display_update", (30*30*sizeof(uint16_t)) ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(display_update, "display_update", (30*30*sizeof(uint16_t)) ,&pointer_ADC_result , TASK_PRIO_0,NULL , tskNO_AFFINITY);
 
 
 }

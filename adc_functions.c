@@ -146,7 +146,7 @@ xTaskNotifyGive(pwm_control_task);
 xTaskNotifyGive(display_update_task);
 
 
-vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(2));
+vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(4));
 
 
 }
@@ -177,7 +177,9 @@ comparatorsBoosters[1]=&pvparameter+sizeof(mcpwm_cmpr_handle_t);
 
 for(;;){
 
+
 ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
 
 measured = (int) * pointer_ADC_result;
 

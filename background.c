@@ -7,36 +7,8 @@
 
 #include <stdint.h>
 #include "esp_heap_caps.h"
+#include "main.h"
 
-// Height and width of display
-
-# define ROWARRAY 128
-# define COLARRAY 160
-
-// FRAMES THAT CHANGE
-# define TIMERASETL 30
-# define TIMERASETH 50
-# define TIMECASETL 10
-# define TIMECASETH 18
-# define TIMECOLOR 0xf165
-# define ROWTIME (TIMERASETH-TIMERASETL)
-# define COLTIME (TIMECASETH-TIMECASETL)
-
-# define ACRASETL 45
-# define ACRASETH 70
-# define ACCASETL 140
-# define ACCASETH 148
-# define ACCOLOR 0x49a6
-# define ROWAC (ACRASETH-ACRASETL)
-# define COLAC (ACCASETH-ACCASETL)
-
-# define DCRASETL 45
-# define DCRASETH 70
-# define DCCASETL 140
-# define DCCASETH 148
-# define DCCOLOR 0x49a6
-# define ROWDC (DCRASETH-DCRASETL)
-# define COLDC (DCCASETH-DCCASETL)
 
 
 uint16_t* background_pointers[ROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
@@ -59,7 +31,7 @@ for (int i = 0; i < ROWARRAY; i++) {
 
 // after transfer to EXT RAM clean this array SEE BELLOW 
 
-uint16_t background [160][128]=
+uint16_t background [COLARRAY][ROWARRAY]=
 
 {{0xe75d, 0xf7ff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
  0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xf7ff,

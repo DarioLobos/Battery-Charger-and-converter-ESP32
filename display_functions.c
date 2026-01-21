@@ -5,6 +5,7 @@
  *      Author: dario Lobos
  */
 
+#include "freertos/projdefs.h"
 #include "main.h"
 #include "display_commands.h"
 #include "display_commands.c"
@@ -19,6 +20,7 @@
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
 #include "background.c"
+#include "setuptimebackground.c"
 
 TaskHandle_t xtaskHandleDisplay= NULL;
 TaskHandle_t xtaskHandleFrame = NULL;
@@ -29,6 +31,8 @@ static void display_init(void *pvparameter){
 spi_device_handle_t spi= pvparameter;
 
 display_allocation();
+
+setup_time_bkg_allocation();
 
 xTaskNotifyGive(xtaskHandleFrame);
 
@@ -94,4 +98,28 @@ static void psi_setup(){
     };
 	ESP_ERROR_CHECK(spi_bus_initialize(LCD_HOST, &buscfg, SPI_DMA_CH_AUTO));
 
+}
+
+static void display_update (void *pvparameter){
+
+int received_voltage;
+
+int received_digits[5];
+ 
+int prev_digits[5];
+
+char* temp[5]; 
+
+
+for(;;){
+
+ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+received_voltage= (int) pvparameter; 
+
+received_voltage= (int)(received_voltage/10);
+
+
+
+}
 }
