@@ -32,7 +32,9 @@ And to dump a bipmap for each character used in screen update i used the lvgl/lv
 
 https://github.com/lvgl/lv_font_conv?tab=readme-ov-file
 
-Each bitmap needs Its own array. I am doing this.
+Each bitmap needs Its own array.
+
+Since are small and only I need numbers I just did fonts manually.
 
 when you open the background.c again have plitted the data amd bracket it to do a 2 
 dimensions array. Need to add the name and clear just a couple of symbols after the array.
