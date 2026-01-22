@@ -14,7 +14,6 @@
 #include "freertos/projdefs.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
-#include "driver/mcpwm_prelude.h"
 #include "driver/mcpwm_cmpr.h"
 #include "driver/mcpwm_types.h"
 
@@ -154,7 +153,6 @@ vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(4));
 
 void pwm_control (void *pvparameter ){
 
-int minAc= VMINAC * 1000;
 
 int nomAc= VNOMAC * 1000;
 
