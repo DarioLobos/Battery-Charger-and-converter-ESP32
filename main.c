@@ -29,7 +29,6 @@
 #include "adc_functions.c"
 #include "gpio_init.c"
 
-spi_device_handle_t* spi;
 
 ADC_handler_t adc1[5];
 
@@ -52,8 +51,7 @@ void app_main(void)
 
 	gpio_booster_config ();
 
-    xTaskCreatePinnedToCore(display_init, "display_init", (128*160*sizeof(uint16_t)+1024), &spi, TASK_PRIO_4, &xtaskHandleDisplay , CORE0);
-
+    xTaskCreatePinnedToCore(display_init, "display_init", (128*160*sizeof(uint16_t)+1024), NULL, TASK_PRIO_4, &xtaskHandleDisplay , CORE0);
     xTaskCreatePinnedToCore(display_frames, "display_frames", (30*30*sizeof(uint16_t)),NULL , TASK_PRIO_4, &xtaskHandleFrame, CORE1);
 
 // TIMERS FOR BOOSTER WILL START AFTER ADC SIGNAL AND AT PRIORITY 3

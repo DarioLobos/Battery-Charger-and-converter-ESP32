@@ -17,9 +17,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_system.h"
 #include "driver/spi_master.h"
-#include "driver/gpio.h"
 #include "background.c"
 #include "portmacro.h"
 #include "setuptimebackground.c"
@@ -30,9 +28,30 @@ TaskHandle_t xtaskHandleFrame = NULL;
 
 static volatile uint16_t* ac_pointers_to_send[ROWAC];
 
-static void display_init(void *pvparameter){
+uint8_t array_of_commands_poll[11]={ NORON,COLMOD,PCOLMOD,DISPON,CASET,0,COLARRAY-1,RASET,0,ROWARRAY-1,RAMWR};
 
-spi_device_handle_t spi= pvparameter;
+static uint8_t * pointer_to_commands_poll=&array_of_commands_poll[0]; 
+
+static const uint8_t array_of_commands_ISR_time[7]={CASET,TIMECASETL,TIMECASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
+
+static uint8_t * pointer_to_commands_isr_time=&array_of_commands_ISR_time[0];
+
+static const uint8_t array_of_commands_ISR_AC[7]={CASET,ACCASETL,ACCASETH,RASET,ACRASETL,ACRASETH,RAMWR};
+
+static uint8_t * pointer_to_commands_isr_ac=&array_of_commands_ISR_AC[0];
+
+static const uint8_t array_of_commands_ISR_DC[7]={CASET,DCCASETL,DCCASETH,RASET,DCRASETL,DCRASETH,RAMWR};
+
+static uint8_t * pointer_to_commands_isr_dc=&array_of_commands_ISR_DC[0];
+
+static const uint8_t array_of_commands_ISR_BANNERST[7]={CASET,STCASETL,STCASETH,RASET,STRASETL,STRASETH,RAMWR};
+
+static uint8_t * pointer_to_commands_isr_BANNERST=&array_of_commands_ISR_DC[0];
+
+spi_device_handle_t spi;
+
+
+static void display_init(void *pvparameter){
 
 display_allocation();
 
@@ -40,35 +59,34 @@ setup_time_bkg_allocation();
 
 xTaskNotifyGive(xtaskHandleFrame);
 
-spi_polling(spi, NORON, true);
-spi_polling(spi, COLMOD, true);
-spi_polling(spi, PCOLMOD, true);
-spi_polling(spi, DISPON, true);
-spi_polling(spi, CASET, true);
-spi_polling(spi, 0, true);// ALL THE SCREEN
-spi_polling(spi, 0X7F, true); // ALL THE SCREEN
-spi_polling(spi, RASET, true);
-spi_polling(spi, 0, true);// ALL THE SCREEN
-spi_polling(spi, 0X9F, true);// ALL THE SCREEN
-spi_polling(spi, RAMWR, true);// ALL THE SCREEN
 
-for (int i = 0; i < ROWARRAY; i++) {
+spi_polling(spi, *pointer_to_commands_poll,sizeof(array_of_commands_poll), true);
 
-	for (int j = 0; j < COLARRAY; j++) {
+//spi_polling(spi, NORON,8, true);
+//spi_polling(spi, COLMOD,8, true);
+//spi_polling(spi, PCOLMOD,8, true);
+//spi_polling(spi, DISPON,8, true);
+//spi_polling(spi, CASET,8, true);
+//spi_polling(spi, 0,8, true);// ALL THE SCREEN
+//spi_polling(spi, COLARRAY-1, 8,true); // ALL THE SCREEN
+//spi_polling(spi, RASET,8, true);
+//spi_polling(spi, 0,8, true);// ALL THE SCREEN
+//spi_polling(spi, ROWARRAY-1,8, true);// ALL THE SCREEN
+//spi_polling(spi, RAMWR,8, true);// ALL THE SCREEN
 
-spi_polling(spi, background_pointers[i][j], true);// ALL THE SCREEN
 
-}
-}
+spi_polling(spi, background_pointers[0][0],sizeof(background_pointers), true);// ALL THE SCREEN
+
 
 spi_device_polling_end(spi, portMAX_DELAY);
 
 // BACKGROUND READY AT FIRST
 
-// free memory and delete task awaiting next task finish
-
+// awaiting small frames are done
 
 ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
+
+// free memory and delete task awaiting next task finish
 
 free(background_pointers);
 
@@ -111,16 +129,11 @@ static void psi_setup(){
 static void display_update (void *pvparameter){
 
 int received_voltage;
-
-int received_digits[5];
  
-int prev_digits[5];
-
 int digits;
 
 uint8_t received_digit;
 
-uint8_t commands[10];//unfinished
 
 // Allocate memory for each row in PSRAM
 for (int i = 0; i < ROWAC; i++) {
@@ -175,8 +188,6 @@ digits++;
 		}
 	}
 
-unfinished
-spi_transmit_isr(spi_device_handle_t spi,void* commands, void* data, bool keep_cs_active)
 
 }
 else if((received_digit=((received_voltage%1000-received_voltage%100)/100)>0) | (digits >-1)){
@@ -193,11 +204,6 @@ digits++;
 				}
 		}
 	}
-
-unfinished
-spi_transmit_isr(spi_device_handle_t spi,void* commands, void* data, bool keep_cs_active)
-
-
 }
 else if((received_digit=((received_voltage%100-received_voltage%10)/10)>0) | (digits >-1)){
 digits++; 
@@ -213,10 +219,6 @@ digits++;
 				}
 		}
 	}
-
-unfinished
-spi_transmit_isr(spi_device_handle_t spi,void* commands, void* data, bool keep_cs_active)
-
 }
 else {
 received_digit=(received_voltage-received_voltage)%10;
@@ -234,11 +236,6 @@ digits++;
 				}
 		}
 	}
-
-unfinished
-spi_transmit_isr(spi_device_handle_t spi,void* commands, void* data, bool keep_cs_active)
-
-
 }
 	for (int j=24;j<32;j++){
 		for(int i=0;i<8;i++){
@@ -251,10 +248,9 @@ spi_transmit_isr(spi_device_handle_t spi,void* commands, void* data, bool keep_c
 				}
 		}
 	}
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_ac, sizeof(array_of_commands_ISR_AC), true);
 
-unfinished
-spi_transmit_isr(spi_device_handle_t spi,void* commands, void* data, bool keep_cs_active)
-
+spi_transmit_isr(spi,false, ac_pointers_to_send[0][0], sizeof(ac_pointers_to_send), true);
  
 
 }

@@ -328,8 +328,8 @@ for(int i=0; i<5; i++){
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[0].adc_handle, ADC1_CHAN1, &config));
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[1].adc_handle, ADC1_CHAN2, &config));
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[2].adc_handle, ADC1_CHAN3, &config));
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[4].adc_handle, ADC1_CHAN6, &config));
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[5].adc_handle, ADC1_CHAN7, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[3].adc_handle, ADC1_CHAN6, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[4].adc_handle, ADC1_CHAN7, &config));
 
 
    //-------------ADC1 Calibration Init---------------//
