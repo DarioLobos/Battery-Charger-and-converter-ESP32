@@ -14,7 +14,7 @@
 #include "mcpwm_init.c"
 #include "adc_functions.c"
 #include "gpio_init.c"
-
+#include "ic2_commands_RTC_CLK.c"
 
 ADC_handler_t adc1[5];
 
@@ -24,6 +24,7 @@ timer_def_t timers_config;
 mcpwm_timer_handle_t *timerstotask =&timers_config.timers[0];
 
 mcpwm_cmpr_handle_t *comparatorstotask = &timers_config. comparatorsBoosters[0] ;
+
 
 
 void app_main(void)

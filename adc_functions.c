@@ -36,6 +36,15 @@ mcpwm_gen_handle_t generatorsMosfets[2];
 
 }timer_def_t2; 
 
+typedef struct ADC_HANDLERS{
+adc_oneshot_unit_handle_t adc_handle;
+adc_cali_handle_t adc_cali_handle;
+	}ADC_handler_t;
+
+int * pointer_ADC_result;
+
+TaskHandle_t pwm_control_task;
+TaskHandle_t display_update_task;
 
 
 static const char *TAG = "error/message:";
@@ -93,15 +102,6 @@ static bool adc_calibration_init(adc_unit_t unit, adc_channel_t channel, adc_att
     return calibrated;
 }
 
-typedef struct ADC_HANDLERS{
-adc_oneshot_unit_handle_t adc_handle;
-adc_cali_handle_t adc_cali_handle;
-	}ADC_handler_t;
-
-int * pointer_ADC_result =0;
-
-TaskHandle_t pwm_control_task;
-TaskHandle_t display_update_task;
 
 
 void adc_one_shoot_reading(void *pvparameter ){
@@ -124,7 +124,7 @@ for(;;){
 vPortEnterCritical(CORE0);
 
 for(int i=0;i<10;i++){
-ESP_ERROR_CHECK(adc_oneshot_read(adc1->adc_handle, ADC1_CHAN1, &adc_raw[i]));
+ESP_ERROR_CHECK(adc_oneshot_read(adc1->adc_handle, ADC1_CHAN3, &adc_raw[i]));
 }
 
 taskEXIT_CRITICAL(CORE0);
@@ -323,18 +323,18 @@ for(int i=0; i<5; i++){
     };
 
 
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[0].adc_handle, ADC1_CHAN1, &config));
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[1].adc_handle, ADC1_CHAN2, &config));
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[2].adc_handle, ADC1_CHAN3, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[0].adc_handle, ADC1_CHAN3, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[1].adc_handle, ADC1_CHAN4, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[2].adc_handle, ADC1_CHAN5, &config));
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[3].adc_handle, ADC1_CHAN6, &config));
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[4].adc_handle, ADC1_CHAN7, &config));
 
 
    //-------------ADC1 Calibration Init---------------//
  
-	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN1, ADC_ATTEN, &adc1[0].adc_cali_handle));
-	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN2, ADC_ATTEN, &adc1[1].adc_cali_handle));
-	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN3, ADC_ATTEN, &adc1[2].adc_cali_handle));
+	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN3, ADC_ATTEN, &adc1[0].adc_cali_handle));
+	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN4, ADC_ATTEN, &adc1[1].adc_cali_handle));
+	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN5, ADC_ATTEN, &adc1[2].adc_cali_handle));
 	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN6, ADC_ATTEN, &adc1[3].adc_cali_handle));
 	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN7, ADC_ATTEN, &adc1[4].adc_cali_handle));
 

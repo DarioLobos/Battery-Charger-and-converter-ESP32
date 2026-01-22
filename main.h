@@ -10,14 +10,21 @@
 #define CORE0               0
 #define CORE1               1
 
+// ------------------------------------
 // Height and width of display
+// ------------------------------------
 
 # define ROWARRAY 128
 # define COLARRAY 160
 
-// FRAMES THAT CHANGE
+// ------------------------------------
+// FRAMES THAT CHANGE IN THE DISPLAY
+// ------------------------------------
 
+// ------------------------------------
 // FRAME SETUP TIME
+// ------------------------------------
+
 # define STRASETL 89
 # define STRASETH 100
 # define STCASETL 16
@@ -25,6 +32,10 @@
 
 # define STROWARRAY 11
 # define STCOWARRAY 88
+
+// ------------------------------------
+// FRAME CLOCK 
+// ------------------------------------
 
 # define TIMERASETL 30
 # define TIMERASETH 70
@@ -34,6 +45,10 @@
 # define ROWTIME (TIMERASETH-TIMERASETL)
 # define COLTIME (TIMECASETH-TIMECASETL)
 
+// ------------------------------------
+// FRAME AC VOLTAGE (110V)
+// ------------------------------------
+
 # define ACRASETL 44
 # define ACRASETH 92
 # define ACCASETL 141
@@ -41,6 +56,10 @@
 # define ACCOLOR 0x0f47
 # define ROWAC (ACRASETH-ACRASETL)
 # define COLAC (ACCASETH-ACCASETL)
+
+// ------------------------------------
+// FRAME DC VOLTAGE (110V)
+// ------------------------------------
 
 # define DCRASETL 44
 # define DCRASETH 84
@@ -50,12 +69,13 @@
 # define ROWDC (DCRASETH-DCRASETL)
 # define COLDC (DCCASETH-DCCASETL)
 
-
+// ------------------------------------
 // MCPWM
+// ------------------------------------
 
 // TIMER 0 FOR MOSFET TIMER 1 AND 2 FOR BOOSTER
 
-#define TIMER0_RESOLUTION_HZ 1000000  
+#define TIMER0_RESOLUTION_HZ 1000000   
 // 1MHz, 1us per tick
 #define TIMER0_PERIOD        16667    
 // 16,666ms
@@ -88,12 +108,26 @@
 #define GEN_GPIO2           4
 #define GEN_GPIO3	        5
 
+// ------------------------------------
 //ADC1 Channels
-#define ADC1_CHAN1          ADC_CHANNEL_1
-#define ADC1_CHAN2          ADC_CHANNEL_2
+// ------------------------------------
+
+// 
+// GPIO 39
 #define ADC1_CHAN3          ADC_CHANNEL_3
+
+// GPIO32
+#define ADC1_CHAN4          ADC_CHANNEL_4
+
+// GPIO33
+#define ADC1_CHAN5          ADC_CHANNEL_5
+
+// GPIO34
 #define ADC1_CHAN6          ADC_CHANNEL_6
+
+// GPIO 35
 #define ADC1_CHAN7          ADC_CHANNEL_7
+
 
 #define ADC_ATTEN           ADC_ATTEN_DB_12
 
@@ -117,10 +151,9 @@
 #define MIN_COMP_L	4	 
 
 	 
-
-
-
+// ------------------------------------
 //GPIO FOR BOOSTER INPUT TO IDENTIFY USED BOOSTER WITH INTERRUPT
+// ------------------------------------
 
 #define ESP_INTR_FLAG_DEFAULT 0
 
@@ -130,3 +163,22 @@
 
 #define INPUT_BOOSTER_MASK (1ULL<<GPIO_INPUT_BOOSTER)
 
+// ------------------------------------
+// IC2 CONFIG FOR CLOCK OR OTHER SENSORS LATER ON
+// ------------------------------------
+
+// GPIO 21
+#define SDA_PIN   21
+
+// GPIO 22
+#define SDL_PIN   22
+
+// frequency is to handle fast mode of RTC Clock DS3231
+#define I2C_MASTER_FREQ_HZ 400000
+
+// address for DS3231
+
+#define SLV_DS3231ADDR	0X68
+ 
+#define WRITE_BIT I2C_MASTER_WRITE       
+#define READ_BIT I2C_MASTER_READ         
