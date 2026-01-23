@@ -6,7 +6,7 @@
  */
 
 #include "driver/mcpwm_timer.h"
-#include "main.h"
+#include "config_main.h"
 #include "esp_log.h"
 #include "driver/mcpwm_prelude.h"
 #include "driver/mcpwm_cmpr.h"
