@@ -15,6 +15,7 @@
 #include <stdint.h>
 
 uint8_t *received_time[3];
+uint8_t *received_date[4];
 
 
 
@@ -47,10 +48,12 @@ static esp_err_t ic2_setup_time(uint8_t seconds, uint8_t minutes, uint8_t hour){
 
     uint8_t data[3]={ seconds, minutes,hour};
     void *ptrdata=&data;
+	uint8_t *address=0;
 
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (SLV_DS3231ADDR << 1) | WRITE_BIT, true);
+    i2c_master_write(cmd, address, 1, true);
     i2c_master_write(cmd, ptrdata, sizeof(data), true);
 	i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, portMAX_DELAY);
@@ -62,10 +65,12 @@ return ret;
 static esp_err_t ic2_read_time(){
 
     *received_time = heap_caps_malloc(COLDC * sizeof(received_time), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+	uint8_t *address=0;
 
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (SLV_DS3231ADDR << 1) | READ_BIT, true);
+    i2c_master_write(cmd, address, 1, true);
     i2c_master_read(cmd, *received_time, sizeof(*received_time), false);
 	i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, portMAX_DELAY);
@@ -74,4 +79,41 @@ return ret;
 
 }
 
+
+
+static esp_err_t ic2_setup_date(uint8_t day_week, uint8_t day, uint8_t month,uint8_t year ){
+
+    uint8_t data[4]={ day_week, day,month,year };
+    void *ptrdata=&data;
+	uint8_t *address=(uint8_t*)ADDRDAY;
+	
+
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (SLV_DS3231ADDR << 1) | WRITE_BIT, true);
+    i2c_master_write(cmd,address , 1, true);
+    i2c_master_write(cmd, ptrdata, sizeof(data), true);
+	i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, portMAX_DELAY);
+
+return ret;
+
+}
+
+static esp_err_t ic2_read_date(){
+
+    *received_date = heap_caps_malloc(COLDC * sizeof(received_date), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+	uint8_t *address=(uint8_t*)ADDRDAY;
+
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (SLV_DS3231ADDR << 1) | READ_BIT, true);
+    i2c_master_write(cmd, address, 1, true);
+    i2c_master_read(cmd, *received_date, sizeof(*received_time), false);
+	i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, portMAX_DELAY);
+
+return ret;
+
+}
 

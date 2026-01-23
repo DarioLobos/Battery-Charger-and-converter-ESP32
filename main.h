@@ -37,10 +37,10 @@
 // FRAME CLOCK 
 // ------------------------------------
 
-# define TIMERASETL 30
-# define TIMERASETH 70
-# define TIMECASETL 11
-# define TIMECASETH 18
+# define TIMERASETL 11 
+# define TIMERASETH 18
+# define TIMECASETL 30
+# define TIMECASETH 94
 # define TIMECOLOR 0xf165
 # define ROWTIME (TIMERASETH-TIMERASETL)
 # define COLTIME (TIMECASETH-TIMECASETL)
@@ -58,13 +58,13 @@
 # define COLAC (ACCASETH-ACCASETL)
 
 // ------------------------------------
-// FRAME DC VOLTAGE (110V)
+// FRAME DC VOLTAGE (12v)
 // ------------------------------------
 
 # define DCRASETL 44
 # define DCRASETH 84
-# define DCCASETL 130
-# define DCCASETH 148
+# define DCCASETL 131
+# define DCCASETH 138
 # define DCCOLOR 0x1dee
 # define ROWDC (DCRASETH-DCRASETL)
 # define COLDC (DCCASETH-DCCASETL)
@@ -173,7 +173,7 @@
 // GPIO 22
 #define SDL_PIN   22
 
-// frequency is to handle fast mode of RTC Clock DS3231
+// frequency is to handle fast mode of RTC Clock DS3231 [CLOCK HAVE BATTERY AND IS INDEPENDENT, CHEAP]
 #define I2C_MASTER_FREQ_HZ 400000
 
 // address for DS3231
@@ -181,4 +181,7 @@
 #define SLV_DS3231ADDR	0X68
  
 #define WRITE_BIT I2C_MASTER_WRITE       
-#define READ_BIT I2C_MASTER_READ         
+#define READ_BIT I2C_MASTER_READ       
+
+// IN DS3231 ADDDRESS OF TIME START IN ZERO, AND ARE ALIGNED ADDRESS OF DATE START 0X03 AND IS ALIGNED TOO
+#define ADDRDAY	0X03

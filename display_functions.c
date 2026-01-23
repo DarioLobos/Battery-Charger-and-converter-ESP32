@@ -6,9 +6,6 @@
  */
 
 #include "freertos/projdefs.h"
-#include "main.h"
-#include "display_commands.h"
-#include "display_commands.c"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,33 +15,41 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/spi_master.h"
+#include "main.h"
+#include "display_commands.h"
+#include "display_commands.c"
 #include "background.c"
 #include "portmacro.h"
 #include "setuptimebackground.c"
 #include "font_numbers.c"
+#include "adc_functions.c"
+#include "ic2_commands_RTC_CLK.c"
 
 TaskHandle_t xtaskHandleDisplay= NULL;
 TaskHandle_t xtaskHandleFrame = NULL;
 
 static volatile uint16_t* ac_pointers_to_send[ROWAC];
 
-uint8_t array_of_commands_poll[11]={ NORON,COLMOD,PCOLMOD,DISPON,CASET,0,COLARRAY-1,RASET,0,ROWARRAY-1,RAMWR};
+static volatile uint16_t* time_pointers_to_send[ROWTIME];
+
+
+static uint8_t array_of_commands_poll[11]={ NORON,COLMOD,PCOLMOD,DISPON,CASET,0,COLARRAY-1,RASET,0,ROWARRAY-1,RAMWR};
 
 static uint8_t * pointer_to_commands_poll=&array_of_commands_poll[0]; 
 
-static const uint8_t array_of_commands_ISR_time[7]={CASET,TIMECASETL,TIMECASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
+static uint8_t array_of_commands_ISR_time[7]={CASET,TIMECASETL,TIMECASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
 
 static uint8_t * pointer_to_commands_isr_time=&array_of_commands_ISR_time[0];
 
-static const uint8_t array_of_commands_ISR_AC[7]={CASET,ACCASETL,ACCASETH,RASET,ACRASETL,ACRASETH,RAMWR};
+uint8_t array_of_commands_ISR_AC[7]={CASET,ACCASETL,ACCASETH,RASET,ACRASETL,ACRASETH,RAMWR};
 
 static uint8_t * pointer_to_commands_isr_ac=&array_of_commands_ISR_AC[0];
 
-static const uint8_t array_of_commands_ISR_DC[7]={CASET,DCCASETL,DCCASETH,RASET,DCRASETL,DCRASETH,RAMWR};
+static uint8_t array_of_commands_ISR_DC[7]={CASET,DCCASETL,DCCASETH,RASET,DCRASETL,DCRASETH,RAMWR};
 
 static uint8_t * pointer_to_commands_isr_dc=&array_of_commands_ISR_DC[0];
 
-static const uint8_t array_of_commands_ISR_BANNERST[7]={CASET,STCASETL,STCASETH,RASET,STRASETL,STRASETH,RAMWR};
+static uint8_t array_of_commands_ISR_BANNERST[7]={CASET,STCASETL,STCASETH,RASET,STRASETL,STRASETH,RAMWR};
 
 static uint8_t * pointer_to_commands_isr_BANNERST=&array_of_commands_ISR_DC[0];
 
@@ -127,7 +132,7 @@ static void psi_setup(){
 }
 
 
-static void display_update (void *pvparameter){
+static void display_update_AC (void *pvparameter){
 
 int received_voltage;
  
@@ -152,7 +157,7 @@ ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
 digits=-1;
 
-received_voltage= (int) pvparameter; 
+received_voltage= *pointer_ADC_result_AC; 
 
 received_voltage= (int)((received_voltage*110000/2350)+5)/10; //transform to AC , eliminate one digit rounding, 
 
@@ -255,4 +260,171 @@ spi_transmit_isr(spi,false, ac_pointers_to_send[0][0], sizeof(ac_pointers_to_sen
  
 
 }
+}
+
+static void display_update_TIME (void *pvparameter){
+
+
+int time_array[3];
+
+ 
+int digits;
+
+uint8_t received_digit;
+
+
+// Allocate memory for each row in PSRAM
+for (int i = 0; i < ROWTIME; i++) {
+    time_pointers_to_send[i] = (uint16_t*)heap_caps_malloc(COLTIME * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (time_pointers_to_send[i] == NULL) {
+        printf("Failed to allocate AC row %d\n", i);
+        return;
+        }
+}
+
+
+for(;;){
+
+ic2_read_time();
+
+digits=-1;
+
+// *received_time[0]= seconds  *received_time[1]= minutes  *received_time[2]= hours
+
+if ((received_digit=*received_time[2]-*received_time[2]%10/10)>0){
+
+digits=0;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
+				time_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				time_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
+}
+
+received_digit=*received_time[2]%10;
+digits++; 
+
+	for (int j=digits*8;j<(digits*8+8);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
+				time_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				time_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
+
+digits++;
+
+	for (int j=digits*8;j<(digits*8+8);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[10][j]&(1<<i))>0){
+				ac_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				ac_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
+
+
+received_digit=*received_time[1]-*received_time[1]%10/10;
+
+digits++; 
+
+	for (int j=digits*8;j<(digits*8+8);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
+				time_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				time_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
+
+
+}
+
+received_digit=*received_time[1]%10;
+digits++; 
+
+	for (int j=digits*8;j<(digits*8+8);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
+				time_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				time_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
+
+
+digits++;
+
+	for (int j=digits*8;j<(digits*8+8);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[10][j]&(1<<i))>0){
+				ac_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				ac_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
+
+received_digit=*received_time[0]-*received_time[0]%10/10;
+digits++; 
+
+	for (int j=digits*8;j<(digits*8+8);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
+				time_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				time_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
+
+
+
+received_digit=*received_time[0]%10;
+digits++; 
+
+	for (int j=digits*8;j<(digits*8+8);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
+				time_pointers_to_send[i][j]=ACCOLOR;
+				}
+			else{
+				time_pointers_to_send[i][j]=ac_pointers[i][j];
+
+				}
+		}
+	}
+
+
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_time, sizeof(array_of_commands_ISR_time), true);
+
+spi_transmit_isr(spi,false, time_pointers_to_send[0][0], sizeof(time_pointers_to_send), true);
+ 
+
 }

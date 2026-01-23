@@ -12,9 +12,9 @@
 
 
 static uint16_t* background_pointers[ROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
-static uint16_t* time_pointers[ROWTIME]; // Array of pointers (likely in DRAM/IRAM)
-static uint16_t* ac_pointers[ROWAC]; // Array of pointers (likely in DRAM/IRAM)
-static uint16_t* dc_pointers[ROWDC]; // Array of pointers (likely in DRAM/IRAM)
+static volatile uint16_t* time_pointers[ROWTIME]; // Array of pointers (likely in DRAM/IRAM)
+static volatile uint16_t* ac_pointers[ROWAC]; // Array of pointers (likely in DRAM/IRAM)
+static volatile uint16_t* dc_pointers[ROWDC]; // Array of pointers (likely in DRAM/IRAM)
 
 
 void display_allocation(void){

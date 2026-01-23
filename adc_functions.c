@@ -16,32 +16,19 @@
 #include "driver/gpio.h"
 #include "driver/mcpwm_cmpr.h"
 #include "driver/mcpwm_types.h"
+#include "mcpwm_init.c"
+#include "gpio_init.c"
 
-typedef struct TIMERSDEF2 {
-
-mcpwm_timer_handle_t timers[3];
-
-mcpwm_oper_handle_t operatorsBooster[2];
-
-mcpwm_oper_handle_t operatorsMosfet[2];
-
-mcpwm_cmpr_handle_t comparatorsBoosters[2];
-
-mcpwm_cmpr_handle_t comparatorsMosfets;
-
-mcpwm_gen_handle_t generatorsBoosters[2];
-
-mcpwm_gen_handle_t generatorsMosfets[2];
-
-
-}timer_def_t2; 
 
 typedef struct ADC_HANDLERS{
 adc_oneshot_unit_handle_t adc_handle;
 adc_cali_handle_t adc_cali_handle;
 	}ADC_handler_t;
 
-int * pointer_ADC_result;
+static ADC_handler_t adc1[5];
+
+
+int * pointer_ADC_result_AC;
 
 TaskHandle_t pwm_control_task;
 TaskHandle_t display_update_task;
@@ -104,14 +91,9 @@ static bool adc_calibration_init(adc_unit_t unit, adc_channel_t channel, adc_att
 
 
 
-void adc_one_shoot_reading(void *pvparameter ){
+void adc_one_shoot_AC_reading(void *pvparameter ){
 
 	TickType_t xLastWakeTime =  xTaskGetTickCount();
-
-	ADC_handler_t* adc1;
-
-	adc1=  pvparameter;
-
 
     int* adc_result = (int*)heap_caps_malloc(sizeof(int), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
 
@@ -124,7 +106,7 @@ for(;;){
 vPortEnterCritical(CORE0);
 
 for(int i=0;i<10;i++){
-ESP_ERROR_CHECK(adc_oneshot_read(adc1->adc_handle, ADC1_CHAN3, &adc_raw[i]));
+ESP_ERROR_CHECK(adc_oneshot_read(adc1[0].adc_handle, ADC1_CHAN3, &adc_raw[i]));
 }
 
 taskEXIT_CRITICAL(CORE0);
@@ -137,9 +119,9 @@ temp +=  adc_raw[i];
 
 temp= temp/10;
 
-adc_cali_raw_to_voltage(adc1->adc_cali_handle, temp, adc_result); 
+adc_cali_raw_to_voltage(adc1[0].adc_cali_handle, temp, adc_result); 
 
-pointer_ADC_result= adc_result;
+pointer_ADC_result_AC= adc_result;
 
 xTaskNotifyGive(pwm_control_task);
 xTaskNotifyGive(display_update_task);
@@ -168,10 +150,6 @@ int newtickL= MIN_COMP_L;
 
 int booster;
 
-void *comparatorsBoosters[2];
-
-comparatorsBoosters[0]=&pvparameter;
-comparatorsBoosters[1]=&pvparameter+sizeof(mcpwm_cmpr_handle_t);
 
 for(;;){
 
@@ -179,7 +157,7 @@ for(;;){
 ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
 
-measured = (int) * pointer_ADC_result;
+measured = (int) * pointer_ADC_result_AC;
 
 booster= gpio_get_level(GPIO_INPUT_BOOSTER);
 
@@ -301,9 +279,8 @@ mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
 }
 
 
-void adc_setup(	ADC_handler_t adc10, ADC_handler_t adc11,ADC_handler_t adc12, ADC_handler_t adc13, ADC_handler_t adc14){
+void adc_setup(){
 
-ADC_handler_t adc1[5]={adc10,adc11,adc12,adc13,adc14};
 
 
     //-------------ADC1 Init---------------//
