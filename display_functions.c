@@ -272,6 +272,8 @@ int digits;
 
 uint8_t received_digit;
 
+TickType_t xLastWakeTime;
+
 
 // Allocate memory for each row in PSRAM
 for (int i = 0; i < ROWTIME; i++) {
@@ -284,6 +286,8 @@ for (int i = 0; i < ROWTIME; i++) {
 
 
 for(;;){
+
+xLastWakeTime = xTaskGetTickCount();
 
 ic2_read_time();
 
@@ -426,5 +430,6 @@ spi_transmit_isr(spi,true,*pointer_to_commands_isr_time, sizeof(array_of_command
 
 spi_transmit_isr(spi,false, time_pointers_to_send[0][0], sizeof(time_pointers_to_send), true);
  
+vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1000));
 
 }
