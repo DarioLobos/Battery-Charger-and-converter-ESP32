@@ -5,7 +5,6 @@
  *      Author: dario
  */
 
-#include "main.h"
 #include "esp_log.h"
 #include "esp_adc/adc_oneshot.h"
 #include "esp_adc/adc_cali.h"
@@ -17,7 +16,7 @@
 #include "driver/mcpwm_cmpr.h"
 #include "driver/mcpwm_types.h"
 #include "mcpwm_init.c"
-#include "gpio_init.c"
+#include "gpio_keypad.c"
 
 
 typedef struct ADC_HANDLERS{

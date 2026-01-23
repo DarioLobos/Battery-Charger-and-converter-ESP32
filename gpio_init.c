@@ -13,7 +13,7 @@
 #include "freertos/projdefs.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
-#include "main.h"
+#include "config_main.h"
 #include "portmacro.h"
 
 TaskHandle_t booster_control_task= NULL;

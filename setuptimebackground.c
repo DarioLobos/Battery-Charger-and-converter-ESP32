@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 #include "esp_heap_caps.h"
-#include "main.h"
+#include "config_main.h"
 
 
 

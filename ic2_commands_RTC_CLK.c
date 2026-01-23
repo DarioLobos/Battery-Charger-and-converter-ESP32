@@ -11,7 +11,7 @@
 #include "driver/i2c.h"
 #include "portmacro.h"
 #include "sdkconfig.h"
-#include "main.h"
+#include "config_main.h"
 #include <stdint.h>
 
 uint8_t *received_time[3];
