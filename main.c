@@ -35,7 +35,7 @@ void app_main(void)
 
 	xTaskCreatePinnedToCore(display_update_AC, "display_update_AC", (64*5*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
 
-	xTaskCreatePinnedToCore(special_keypad_row, "special_keypad_row", (64*8*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_0,&keypadrow_control_task , tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(special_key_call, "special_keypad_row", (64*8*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_0,&keypad_control_task , tskNO_AFFINITY);
 
 	
 }

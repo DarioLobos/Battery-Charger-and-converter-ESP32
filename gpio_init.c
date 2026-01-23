@@ -18,28 +18,27 @@
 
 TaskHandle_t booster_control_task= NULL;
 
+gpio_config_t io_conf = {};
 
-static void IRAM_ATTR gpio_isr_handler(void* arg)
-{
 
-BaseType_t xHigherPriorityTaskWoken;
+	static void IRAM_ATTR
+	gpio_isr_handler(void *arg) {
 
-xHigherPriorityTaskWoken= pdFALSE;
+	BaseType_t xHigherPriorityTaskWoken;
 
-vTaskNotifyGiveFromISR(booster_control_task, &xHigherPriorityTaskWoken);
+	xHigherPriorityTaskWoken = pdFALSE;
 
-portYIELD_FROM_ISR_ARG(xHigherPriorityTaskWoken);
+	vTaskNotifyGiveFromISR(booster_control_task, &xHigherPriorityTaskWoken);
 
+	portYIELD_FROM_ISR_ARG(xHigherPriorityTaskWoken);
 }
-
 
 void gpio_booster_config (void ){
 
-    gpio_config_t io_conf = {};
     //interrupt of rising edge
     io_conf.intr_type = GPIO_INTR_POSEDGE;
     //bit mask of the pins, use GPIO4/5 here
-    io_conf.pin_bit_mask = INPUT_BOOSTER_MASK;
+    io_conf.pin_bit_mask = io_conf.pin_bit_mask | INPUT_BOOSTER_MASK;
     //set as input mode
     io_conf.mode = GPIO_MODE_INPUT;
     //disable pull-up mode
