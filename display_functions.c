@@ -665,6 +665,17 @@ spi_transmit_isr(spi,false, setup_time_bkg_pointers[0][0], sizeof(setup_time_bkg
 
 key=pressed_key();
 
+while ((key!=12)|(key!=1)|key!=2 ){
+
+key=pressed_key();
+
+}
+
+if(key==1){
+
+
+key=pressed_key();
+
 while ((key!=12)|(key>2)|key<0 ){
 
 key=pressed_key();
@@ -901,7 +912,18 @@ spi_transmit_isr(spi,false, timeS2_pointers_to_send[0][0], sizeof(timeS2_pointer
 ic2_setup_time(time[0], time[1], time[2]);
 
 }
+else if(key==2){
 
+// this is for set up a time for charge when battery have not enough charge from solar panel, wind generator
+// water wheel and need to be connected a transformer from the public electric energy line 
+}
+else{
+
+taskYIELD();
+
+}
+
+}
 
 void display_update_RESET_TIME(void * pvparameters){
 

@@ -22,27 +22,27 @@
 // ------------------------------------
 
 // ------------------------------------
-// FRAME SETUP TIME
+// FRAME SETUP TIME (MENU FRAME)
 // ------------------------------------
 
-# define STRASETL 89
-# define STRASETH 100
-# define STCASETL 16
+# define STRASETL 25
+# define STRASETH 124
+# define STCASETL 25
 # define STCASETH 104
 
-# define STROWARRAY 11
-# define STCOLARRAY 88
+# define STROWARRAY (STRASETH-STRASETL+1)
+# define STCOLARRAY (STCASETH-STCASETL+1)
 
 
 // ------------------------------------
 // FRAME CLOCK 
 // ------------------------------------
 
-# define TIMERASETL 11 
-# define TIMERASETH 18
-# define TIMECOLOR 0xf165
-# define ROWTIME (TIMERASETH-TIMERASETL)
-# define COLTIME (H1TCASETL-S2TCASETH)
+# define TIMERASETL 15 
+# define TIMERASETH 22
+# define TIMECOLOR 0xfdf7
+# define ROWTIME (TIMERASETH-TIMERASETL+1)
+# define COLTIME (H1TCASETL-S2TCASETH+1)
 
 // ------------------------------------
 // SMALL FRAMES FOR EACH TIME DIGITE
@@ -50,28 +50,28 @@
 
 # define H1TCASETL 30
 # define H1TCASETH 37
-# define H1COLTIME (H1TCASETH-H1TCASETL)
+# define H1COLTIME (H1TCASETH-H1TCASETL+1)
 
 
 # define H2TCASETL 38
 # define H2TCASETH 45
-# define H2COLTIME (H2TCASETH-H1TCASETL)
+# define H2COLTIME (H2TCASETH-H1TCASETL+1)
 
 # define M1TCASETL 54
 # define M1TCASETH 61
-# define M1COLTIME (M1TCASETH-M1TCASETL)
+# define M1COLTIME (M1TCASETH-M1TCASETL+1)
 
 # define M2TCASETL 62
 # define M2TCASETH 69
-# define M2COLTIME (M2TCASETH-M2TCASETL)
+# define M2COLTIME (M2TCASETH-M2TCASETL+1)
 
 # define S1TCASETL 79
 # define S1TCASETH 86
-# define S1COLTIME (S1TCASETH-S1TCASETL)
+# define S1COLTIME (S1TCASETH-S1TCASETL+1)
 
 # define S2TCASETL 87
 # define S2TCASETH 94
-# define S2COLTIME (S2TCASETH-S2TCASETL)
+# define S2COLTIME (S2TCASETH-S2TCASETL+1)
 
 
 
@@ -80,25 +80,25 @@
 // FRAME AC VOLTAGE (110V)
 // ------------------------------------
 
-# define ACRASETL 141
-# define ACRASETH 148
-# define ACCASETL 44
-# define ACCASETH 92
-# define ACCOLOR 0x0f47
-# define ROWAC (ACRASETH-ACRASETL)
-# define COLAC (ACCASETH-ACCASETL)
+# define ACRASETL 143
+# define ACRASETH 150
+# define ACCASETL 50
+# define ACCASETH 97
+# define ACCOLOR 0x17a7
+# define ROWAC (ACRASETH-ACRASETL+1)
+# define COLAC (ACCASETH-ACCASETL+1)
 
 // ------------------------------------
 // FRAME DC VOLTAGE (12v)
 // ------------------------------------
 
-# define DCRASETL 131
-# define DCRASETH 138
-# define DCCASETL 44
-# define DCCASETH 84
+# define DCRASETL 133
+# define DCRASETH 140
+# define DCCASETL 50
+# define DCCASETH 89
 # define DCCOLOR 0x1dee
-# define ROWDC (DCRASETH-DCRASETL)
-# define COLDC (DCCASETH-DCCASETL)
+# define ROWDC (DCRASETH-DCRASETL+1)
+# define COLDC (DCCASETH-DCCASETL+1)
 
 // ------------------------------------
 // MCPWM
