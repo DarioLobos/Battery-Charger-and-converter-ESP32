@@ -31,7 +31,8 @@
 # define STCASETH 104
 
 # define STROWARRAY 11
-# define STCOWARRAY 88
+# define STCOLARRAY 88
+
 
 // ------------------------------------
 // FRAME CLOCK 
@@ -39,20 +40,50 @@
 
 # define TIMERASETL 11 
 # define TIMERASETH 18
-# define TIMECASETL 30
-# define TIMECASETH 94
 # define TIMECOLOR 0xf165
 # define ROWTIME (TIMERASETH-TIMERASETL)
-# define COLTIME (TIMECASETH-TIMECASETL)
+# define COLTIME (H1TCASETL-S2TCASETH)
+
+// ------------------------------------
+// SMALL FRAMES FOR EACH TIME DIGITE
+// ------------------------------------
+
+# define H1TCASETL 30
+# define H1TCASETH 37
+# define H1COLTIME (H1TCASETH-H1TCASETL)
+
+
+# define H2TCASETL 38
+# define H2TCASETH 45
+# define H2COLTIME (H2TCASETH-H1TCASETL)
+
+# define M1TCASETL 54
+# define M1TCASETH 61
+# define M1COLTIME (M1TCASETH-M1TCASETL)
+
+# define M2TCASETL 62
+# define M2TCASETH 69
+# define M2COLTIME (M2TCASETH-M2TCASETL)
+
+# define S1TCASETL 79
+# define S1TCASETH 86
+# define S1COLTIME (S1TCASETH-S1TCASETL)
+
+# define S2TCASETL 87
+# define S2TCASETH 94
+# define S2COLTIME (S2TCASETH-S2TCASETL)
+
+
+
 
 // ------------------------------------
 // FRAME AC VOLTAGE (110V)
 // ------------------------------------
 
-# define ACRASETL 44
-# define ACRASETH 92
-# define ACCASETL 141
-# define ACCASETH 148
+# define ACRASETL 141
+# define ACRASETH 148
+# define ACCASETL 44
+# define ACCASETH 92
 # define ACCOLOR 0x0f47
 # define ROWAC (ACRASETH-ACRASETL)
 # define COLAC (ACCASETH-ACCASETL)
@@ -61,10 +92,10 @@
 // FRAME DC VOLTAGE (12v)
 // ------------------------------------
 
-# define DCRASETL 44
-# define DCRASETH 84
-# define DCCASETL 131
-# define DCCASETH 138
+# define DCRASETL 131
+# define DCRASETH 138
+# define DCCASETL 44
+# define DCCASETH 84
 # define DCCOLOR 0x1dee
 # define ROWDC (DCRASETH-DCRASETL)
 # define COLDC (DCCASETH-DCCASETL)
@@ -164,7 +195,7 @@
 #define INPUT_BOOSTER_MASK (1ULL<<GPIO_INPUT_BOOSTER)
 
 // ------------------------------------
-//GPIOS FOR KEYPAD
+//GPIOS FOR KEYPAD 4x3 (what i have)
 // ------------------------------------
 
 // THE THIRD COLUMN AND THE THIRD ROW ARE SPECIAL FUNCTIONS THAT ENABLE THE OTHERS,
@@ -180,11 +211,10 @@
 #define GPIO_KEYPADCOL0 	16
 #define GPIO_KEYPADCOL1 	4
 #define GPIO_KEYPADCOL2 	2
-#define GPIO_KEYPADCOL3 	15
 
-#define INPUT_ROW_NUMBERS_MASK (1ULL<<GPIO_KEYPADROW0 | 1ULL<<GPIO_KEYPADROW1 | 1ULL<<GPIO_KEYPADROW2 } 1ULL<<GPIO_KEYPADROW3 )
+#define INPUT_ROW_NUMBERS_MASK (1ULL<<GPIO_KEYPADROW0 | 1ULL<<GPIO_KEYPADROW1 | 1ULL<<GPIO_KEYPADROW2 | 1ULL<<GPIO_KEYPADROW3 )
 
-#define OUTPUT_COL_NUMBERS_MASK (1ULL<<GPIO_KEYPADCOL0 | 1ULL<<GPIO_KEYPADCOL1 | 1ULL<<GPIO_KEYPADCOL2 | 1ULL<<GPIO_KEYPADCOL3 )
+#define OUTPUT_COL_NUMBERS_MASK (1ULL<<GPIO_KEYPADCOL0 | 1ULL<<GPIO_KEYPADCOL1 | 1ULL<<GPIO_KEYPADCOL2)
 
 
 

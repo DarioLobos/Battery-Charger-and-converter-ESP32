@@ -64,7 +64,7 @@ return ret;
 
 static esp_err_t ic2_read_time(){
 
-    *received_time = heap_caps_malloc(COLDC * sizeof(received_time), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    *received_time = heap_caps_malloc(sizeof(received_time), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
 	uint8_t *address=0;
 
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -102,7 +102,7 @@ return ret;
 
 static esp_err_t ic2_read_date(){
 
-    *received_date = heap_caps_malloc(COLDC * sizeof(received_date), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    *received_date = heap_caps_malloc(sizeof(received_date), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
 	uint8_t *address=(uint8_t*)ADDRDAY;
 
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();

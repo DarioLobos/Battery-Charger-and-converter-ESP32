@@ -19,7 +19,7 @@ void setup_time_bkg_allocation(void){
 
 // Allocate memory for each row in PSRAM
 for (int i = 0; i < STROWARRAY; i++) {
-    setup_time_bkg_pointers[i] = (uint16_t*)heap_caps_malloc(COLARRAY * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    setup_time_bkg_pointers[i] = (uint16_t*)heap_caps_malloc(STCOLARRAY * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     if (setup_time_bkg_pointers[i] == NULL) {
         printf("Failed to allocate row %d\n", i);
         return;
@@ -28,7 +28,7 @@ for (int i = 0; i < STROWARRAY; i++) {
 
 // after transfer to EXT RAM clean this array SEE BELLOW 
 
-uint16_t background [STROWARRAY][STCOWARRAY]=
+uint16_t background [STROWARRAY][STCOLARRAY]=
 
 {{0x6e1e, 0xbebc, 0xe6b9, 0xd617, 0xcdf6, 0xa491, 0x83ae, 0x8c30,
  0x7bae, 0x7bae, 0x736e, 0x52ac, 0x3a2a, 0x08e6, 0x0084, 0x0084,
@@ -165,7 +165,7 @@ uint16_t background [STROWARRAY][STCOWARRAY]=
 
 for (int i = 0; i < STROWARRAY; i++) {
 
-	for (int j = 0; j < STCOWARRAY; j++) {
+	for (int j = 0; j < STCOLARRAY; j++) {
 
 setup_time_bkg_pointers[i][j] = background [i][j];
 background [i][j]=0;

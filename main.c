@@ -21,9 +21,11 @@ void app_main(void)
 
 	gpio_booster_config ();
 
-    xTaskCreatePinnedToCore(display_init, "display_init", (128*160*sizeof(uint16_t)+1024), NULL, TASK_PRIO_4, &xtaskHandleDisplay , CORE0);
+    xTaskCreatePinnedToCore(display_init, "display_init", (COLARRAY*ROWARRAY*sizeof(uint16_t)+4096), NULL, TASK_PRIO_4, &xtaskHandleDisplay , CORE0);
 
-    xTaskCreatePinnedToCore(display_frames, "display_frames", (64*5*sizeof(uint16_t))*3+(64*8*sizeof(uint16_t))+4096,NULL , TASK_PRIO_4, &xtaskHandleFrame, CORE1);
+    xTaskCreatePinnedToCore(display_frames, "display_frames",
+    (ROWTIME*COLTIME*sizeof(uint16_t))+(ROWAC*COLAC*sizeof(uint16_t))+(ROWDC*COLDC*sizeof(uint16_t))+(STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096,
+    NULL ,TASK_PRIO_4, &xtaskHandleFrame, CORE1);
 
     xTaskCreatePinnedToCore(timer_mosfet_start, "Mosfet_signal_start", 4096 ,NULL , TASK_PRIO_3, NULL, CORE0);
 
@@ -33,9 +35,10 @@ void app_main(void)
     
 	xTaskCreatePinnedToCore(pwm_control, "pwm_control", 4096 ,NULL , TASK_PRIO_2, &pwm_control_task, CORE1);
 
-	xTaskCreatePinnedToCore(display_update_AC, "display_update_AC", (64*5*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(display_update_AC, "display_update_AC", (ROWAC*COLAC*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
 
-	xTaskCreatePinnedToCore(special_key_call, "special_keypad_row", (64*8*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_0,&keypad_control_task , tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(display_update_SET_TIME, "display_update_SET_TIME", (STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_1,&xtaskHandleSetTime , tskNO_AFFINITY);
 
-	
+	xTaskCreatePinnedToCore(display_update_RESET_TIME, "display_update_SET_TIME", (STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_1,&xtaskHandleResetTime, tskNO_AFFINITY);
+
 }
