@@ -26,7 +26,6 @@
 
 TaskHandle_t xtaskHandleDisplay= NULL;
 TaskHandle_t xtaskHandleFrame = NULL;
-TaskHandle_t xtaskHandleSetTime = NULL;
 TaskHandle_t xtaskHandleResetTime = NULL;
 
 
@@ -650,6 +649,8 @@ int h1=-1;
 
 uint8_t time[3];
 
+for (;;){
+
 key=pressed_key ();
 
 if ((key!=11)){
@@ -923,7 +924,11 @@ taskYIELD();
 
 }
 
+
 }
+
+}
+
 
 void display_update_RESET_TIME(void * pvparameters){
 
