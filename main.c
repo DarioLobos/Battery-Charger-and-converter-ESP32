@@ -19,6 +19,10 @@ void app_main(void)
 
 	adc_setup(); 
 
+	timer_setup_AC();
+
+	timer_setup_DC();
+
 	gpio_booster_config ();
 
     xTaskCreatePinnedToCore(display_init, "display_init", (COLARRAY*ROWARRAY*sizeof(uint16_t)+4096), NULL, TASK_PRIO_4, &xtaskHandleDisplay , CORE0);

@@ -15,7 +15,7 @@
 #include "driver/gpio.h"
 #include "driver/mcpwm_cmpr.h"
 #include "driver/mcpwm_types.h"
-#include "mcpwm_init.c"
+#include "mcpwm_bat_charge.c"
 #include "gpio_keypad.c"
 
 
@@ -105,7 +105,7 @@ for(;;){
 vPortEnterCritical(CORE0);
 
 for(int i=0;i<10;i++){
-ESP_ERROR_CHECK(adc_oneshot_read(adc1[0].adc_handle, ADC1_CHAN3, &adc_raw[i]));
+ESP_ERROR_CHECK(adc_oneshot_read(adc1[0].adc_handle, ADC1_AC, &adc_raw[i]));
 }
 
 taskEXIT_CRITICAL(CORE0);
@@ -299,20 +299,20 @@ for(int i=0; i<5; i++){
     };
 
 
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[0].adc_handle, ADC1_CHAN3, &config));
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[1].adc_handle, ADC1_CHAN4, &config));
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[2].adc_handle, ADC1_CHAN5, &config));
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[3].adc_handle, ADC1_CHAN6, &config));
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[4].adc_handle, ADC1_CHAN7, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[0].adc_handle, ADC1_AC, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[1].adc_handle, ADC1_DC1, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[2].adc_handle, ADC1_DC2, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[3].adc_handle, ADC1_DC3, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1[4].adc_handle, ADC1_BAT, &config));
 
 
    //-------------ADC1 Calibration Init---------------//
  
-	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN3, ADC_ATTEN, &adc1[0].adc_cali_handle));
-	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN4, ADC_ATTEN, &adc1[1].adc_cali_handle));
-	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN5, ADC_ATTEN, &adc1[2].adc_cali_handle));
-	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN6, ADC_ATTEN, &adc1[3].adc_cali_handle));
-	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_CHAN7, ADC_ATTEN, &adc1[4].adc_cali_handle));
+	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_AC, ADC_ATTEN, &adc1[0].adc_cali_handle));
+	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_DC1, ADC_ATTEN, &adc1[1].adc_cali_handle));
+	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_DC2, ADC_ATTEN, &adc1[2].adc_cali_handle));
+	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_DC3, ADC_ATTEN, &adc1[3].adc_cali_handle));
+	 ESP_ERROR_CHECK(adc_calibration_init(ADC_UNIT_1, ADC1_BAT, ADC_ATTEN, &adc1[4].adc_cali_handle));
 
 
 

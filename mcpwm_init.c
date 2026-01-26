@@ -43,14 +43,14 @@ MCPWM_GEN_COMPARE_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, compa,
 MCPWM_GEN_ACTION_LOW)));
 
 mcpwm_dead_time_config_t dead_time_config = {
-.posedge_delay_ticks = 333,
+.posedge_delay_ticks = DELAYTIMEAC,
 .negedge_delay_ticks = 0
 };
 
 ESP_ERROR_CHECK(mcpwm_generator_set_dead_time(gena, gena, &dead_time_config));
 
 dead_time_config.posedge_delay_ticks = 0;
-dead_time_config.negedge_delay_ticks = 333;
+dead_time_config.negedge_delay_ticks = DELAYTIMEAC;
 dead_time_config.flags.invert_output = true;
 
 ESP_ERROR_CHECK(mcpwm_generator_set_dead_time(gena, genb, &dead_time_config));
@@ -98,7 +98,7 @@ ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 }
 
 
-static void timer_setup (){
+static void timer_setup_AC (void){
 
 	const char *TAG = "error/message:";
     ESP_LOGI(TAG, "Create timers");

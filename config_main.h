@@ -101,7 +101,7 @@
 # define COLDC (DCCASETH-DCCASETL+1)
 
 // ------------------------------------
-// MCPWM
+// MCPWM FOR AC SIGNAL
 // ------------------------------------
 
 // TIMER 0 FOR MOSFET TIMER 1 AND 2 FOR BOOSTER
@@ -118,10 +118,11 @@
 #define TIMER1_PERIOD        50     
 // 50 ticks, 50us  BOOSTER LOW POWER
 #define TIMER2_RESOLUTION_HZ 1000000  
-// 1MHz, 1us per tick  // THIS IS SMALL BOOSTER
+// 1MHz,us per tick  // THIS IS SMALL BOOSTER
 #define TIMER2_PERIOD        50     
 // 50 ticks, 50Us  BOOSTER HIGH POWER
 
+#define DELAYTIMEAC 333
 
 
 #define COMP_VALUE_MOSFET    8333     
@@ -140,24 +141,68 @@
 #define GEN_GPIO3	        5
 
 // ------------------------------------
+// MCPWM FOR DC BUCK BOOSTER SIGNAL
+// ------------------------------------
+
+// TIMER 0 FOR MOSFET TIMER 1 AND 2 FOR BOOSTER
+
+#define TIMERDC_RESOLUTION_HZ 10000000  
+// 10MHz, 0.11us per tick
+#define TIMERDC_PERIOD     500    
+// 50us
+
+#define COMP_VALUE_DC	   220     
+// 22us 
+
+#define DELAYTIMEDC 30
+// 3u
+
+
+// THIS IS THE MINIMUN COMPARATOR [THIS VALUE IS PENDINF DO SIMULATION]
+
+#define COMP_MIN_DC1     40     
+//  4 us 
+
+#define COMP_MIN_DC2     40     
+//  4 us 
+
+#define COMP_MIN_DC3     40     
+//  4 us 
+
+
+#define GEN_GPIO_DC1_1    33
+#define GEN_GPIO_DC1_2    25
+#define GEN_GPIO_DC1_3    26
+
+#define GEN_GPIO_DC2_1    27
+#define GEN_GPIO_DC2_2    14
+#define GEN_GPIO_DC2_3    12
+
+#define GEN_GPIO_DC3_1    17
+#define GEN_GPIO_DC3_2    16
+#define GEN_GPIO_DC3_3    23
+
+
+
+// ------------------------------------
 //ADC1 Channels
 // ------------------------------------
 
 // 
 // GPIO 39
-#define ADC1_CHAN3          ADC_CHANNEL_3
+#define ADC1_AC          ADC_CHANNEL_3
 
 // GPIO32
-#define ADC1_CHAN4          ADC_CHANNEL_4
+#define ADC1_DC1          ADC_CHANNEL_4
 
 // GPIO33
-#define ADC1_CHAN5          ADC_CHANNEL_5
+#define ADC1_DC2          ADC_CHANNEL_0
 
 // GPIO34
-#define ADC1_CHAN6          ADC_CHANNEL_6
+#define ADC1_DC3          ADC_CHANNEL_6
 
 // GPIO 35
-#define ADC1_CHAN7          ADC_CHANNEL_7
+#define ADC1_BAT          ADC_CHANNEL_7
 
 
 #define ADC_ATTEN           ADC_ATTEN_DB_12
@@ -188,7 +233,7 @@
 
 #define ESP_INTR_FLAG_DEFAULT 0
 
-#define GPIO_INPUT_BOOSTER 	27
+#define GPIO_INPUT_BOOSTER 	13
 
 // MASK FOR SELECTION
 
