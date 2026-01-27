@@ -207,6 +207,13 @@
 
 #define ADC_ATTEN           ADC_ATTEN_DB_12
 
+// buffer for continuous mode
+
+#define ADC_BUFFER_SIZE		1024
+#define ADC_FRAME_SIZE		64
+
+
+
 // READING LIMITS IF IS NOT USED AN ESP32 S MUST BE CHANGED UPPER LIMIT SEE USED SPEC
 
 #define VMINAC		1790  

@@ -5,7 +5,6 @@
  *      Author: dario Lobos
  */
 
-#include "main.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -33,11 +32,15 @@ void app_main(void)
 
     xTaskCreatePinnedToCore(timer_mosfet_start, "Mosfet_signal_start", 4096 ,NULL , TASK_PRIO_3, NULL, CORE0);
 
+    xTaskCreatePinnedToCore(adc_continous_DC_reading, "adc_reading", 4096 ,NULL , TASK_PRIO_2, NULL, CORE0);
+
     xTaskCreatePinnedToCore(adc_one_shoot_AC_reading, "adc_reading", 4096 ,NULL , TASK_PRIO_2, NULL, CORE0);
 
 	xTaskCreatePinnedToCore(booster_selection, "pwm_control", 4096 ,NULL , TASK_PRIO_3, &booster_control_task, CORE1);
     
-	xTaskCreatePinnedToCore(pwm_control, "pwm_control", 4096 ,NULL , TASK_PRIO_2, &pwm_control_task, CORE1);
+	xTaskCreatePinnedToCore(dc_pwm_control, "pwm_control", 4096 ,NULL , TASK_PRIO_3, &dc_pwm_control_task, CORE0);
+
+	xTaskCreatePinnedToCore(ac_pwm_control, "pwm_control", 4096 ,NULL , TASK_PRIO_2, &pwm_control_task, CORE1);
 
 	xTaskCreatePinnedToCore(display_update_AC, "display_update_AC", (ROWAC*COLAC*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
 
