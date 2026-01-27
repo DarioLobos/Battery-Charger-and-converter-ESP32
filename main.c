@@ -14,6 +14,8 @@
 void app_main(void)
 {
 
+	GPIO.out_w1ts=((1<<15&~(1<<12)&1));
+
 	psi_setup();
 
 	adc_setup(); 

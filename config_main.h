@@ -209,7 +209,7 @@
 
 // buffer for continuous mode
 
-#define ADC_BUFFER_SIZE		1024
+#define ADC_BUFFER_SIZE		128
 #define ADC_FRAME_SIZE		64
 
 
