@@ -342,6 +342,7 @@ This defines if it was running on Buck, Boost or Buck-boost converter
 and to make the needed transition if change.
 */
 
+for(;;){
 adc_continuous_read(adc_handle_continous,*ADC_BUFFER, ADC_FRAME_SIZE,&rxlength,0 );
 
 adc_continuous_flush_pool( adc_handle_continous);
@@ -625,6 +626,7 @@ else if (((prev_Status&48)==0) & ((pres_Status&3)==(2<<2))){
 
 }
 
+}
 
 void adc_setup(){
 
