@@ -190,7 +190,7 @@ ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
 digits=-1;
 
-received_voltage= *pointer_ADC_result_AC; 
+received_voltage= *pointer_ADC_results_AC; 
 
 received_voltage= (int)((received_voltage*110000/2350)+5)/10; //transform to AC , eliminate one digit rounding, 
 

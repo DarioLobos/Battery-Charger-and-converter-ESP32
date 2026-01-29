@@ -104,22 +104,29 @@
 // MCPWM FOR AC SIGNAL
 // ------------------------------------
 
-// TIMER 0 FOR MOSFET TIMER 1 AND 2 FOR BOOSTER
+// TIMER 0  FOR MOSFET AC HIGH,
+// TIMER 1 FOR BOOSTER HIGH,
+// TIMER 2 FOR MOSFET AC LOW AND
+// TIMER 4 FOR  BOOSTER LOW 
 
 #define TIMER0_RESOLUTION_HZ 1000000   
 // 1MHz, 1us per tick
 #define TIMER0_PERIOD        16667    
 // 16,666ms
 
-// BOOSTER NEEDS 2 TIMERS TO CAN START ONE OR THE OTHER ACCORDING SIGNAL 
-
 #define TIMER1_RESOLUTION_HZ 1000000  
 // 1MHz, 1us per tick // THIS IS BIG BOOSTER 
 #define TIMER1_PERIOD        50     
 // 50 ticks, 50us  BOOSTER LOW POWER
-#define TIMER2_RESOLUTION_HZ 1000000  
+
+#define TIMER2_RESOLUTION_HZ 1000000   
+// 1MHz, 1us per tick
+#define TIMER2_PERIOD        16667    
+// 16,666ms
+
+#define TIMER3_RESOLUTION_HZ 1000000  
 // 1MHz,us per tick  // THIS IS SMALL BOOSTER
-#define TIMER2_PERIOD        50     
+#define TIMER3_PERIOD        50     
 // 50 ticks, 50Us  BOOSTER HIGH POWER
 
 #define DELAYTIMEAC 333
@@ -135,16 +142,17 @@
 //36 us 
 
 
-#define GEN_GPIO0           0
-#define GEN_GPIO1           2
-#define GEN_GPIO2           4
-#define GEN_GPIO3	        5
+#define GEN_GPIO_AC_MOS1_H     0
+#define GEN_GPIO_AC_MOS2_H     2
+#define GEN_GPIO_BOOS_H  	   4
+#define GEN_GPIO_AC_MOS1_L     5
+#define GEN_GPIO_AC_MOS2_L     15
+#define GEN_GPIO_BOOS_L  	   18
 
 // ------------------------------------
 // MCPWM FOR DC BUCK BOOSTER SIGNAL
 // ------------------------------------
 
-// TIMER 0 FOR MOSFET TIMER 1 AND 2 FOR BOOSTER
 
 #define TIMERDC_RESOLUTION_HZ 10000000  
 // 10MHz, 0.11us per tick

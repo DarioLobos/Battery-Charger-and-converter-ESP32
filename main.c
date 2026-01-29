@@ -32,7 +32,7 @@ void app_main(void)
     (ROWTIME*COLTIME*sizeof(uint16_t))+(ROWAC*COLAC*sizeof(uint16_t))+(ROWDC*COLDC*sizeof(uint16_t))+(STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096,
     NULL ,TASK_PRIO_4, &xtaskHandleFrame, CORE1);
 
-    xTaskCreatePinnedToCore(timer_mosfet_start, "Mosfet_signal_start", 4096 ,NULL , TASK_PRIO_3, NULL, CORE0);
+    xTaskCreatePinnedToCore(timer_mosfet_start, "Mosfet_signal_start", 4096 ,NULL , TASK_PRIO_3, &timer_mosfet_start_handle, CORE0);
 
     xTaskCreatePinnedToCore(adc_continous_DC_reading, "adc_reading", 4096 ,NULL , TASK_PRIO_2, NULL, CORE0);
 
