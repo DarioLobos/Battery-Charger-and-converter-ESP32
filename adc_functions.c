@@ -19,6 +19,7 @@
 #include "hal/adc_types.h"
 #include "mcpwm_bat_charge.c"
 #include "gpio_keypad.c"
+#include "portmacro.h"
 #include "soc/soc_caps.h"
 #include <stdint.h>
 
@@ -381,10 +382,7 @@ if(*tick<(DC_MAX_D_BOOSTER-1)){
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
 
-
 }
-
-
 
 } 
 else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_HIGH)) {
@@ -402,14 +400,12 @@ else if(*tick<(DC_MIN_D_BOOSTER+2)){
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
 
-
 }
 else if(*tick<(DC_MIN_D_BOOSTER+1)){
 
 *tick=*tick-1;
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
-
 
 }
 
@@ -421,14 +417,12 @@ if(*tick<(DC_MIN_D_BOOSTER+2)){
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
 
-
 }
 else if(*tick<(DC_MIN_D_BOOSTER+1)){
 
 *tick=*tick-1;
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
-
 
 }
 
@@ -440,10 +434,7 @@ if(*tick<(DC_MAX_D_BOOSTER+1)){
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
 
-
 }
-
-
 
 }
 }
@@ -595,6 +586,7 @@ void dc_pwm_control(void *pvparameter ){
 
 int tempresult[4];
 
+
 uint16_t pres_Status=0;
 
 int newtickBOOSTER[3]= { DC_MIN_D_BOOSTER, DC_MIN_D_BOOSTER , DC_MIN_D_BOOSTER };
@@ -617,9 +609,14 @@ and to make the needed transition if change.
 
 for(;;){
 
-adc_continuous_read(adc_handle_continous,*ADC_BUFFER, ADC_FRAME_SIZE,&rxlength,0 );
+// I am using the read to block the task, I there no egough time to run other task, taskdelay(] should be used
+
+adc_continuous_read(adc_handle_continous,*ADC_BUFFER, ADC_FRAME_SIZE,&rxlength,portMAX_DELAY );
 
 adc_continuous_flush_pool( adc_handle_continous);
+
+
+int data_in_counter[4]={0,0,0,0};
 
 
 for(int i=0; i <rxlength; i+= SOC_ADC_DIGI_RESULT_BYTES){
@@ -628,23 +625,28 @@ data_DC_wrapper_pointer= (adc_digi_output_data_t *) &ADC_BUFFER[i];
 
 
 if (data_DC_wrapper_pointer->type1.channel==ADC1_DC1){
-tempresult[0]+= data_DC_wrapper_pointer->type1.data;}
+tempresult[0]+= data_DC_wrapper_pointer->type1.data;
+data_in_counter[0]++;
+}
 else if(data_DC_wrapper_pointer->type1.channel==ADC1_DC2){
-tempresult[1]+= data_DC_wrapper_pointer->type1.data;}
+tempresult[1]+= data_DC_wrapper_pointer->type1.data;
+data_in_counter[1]++;
+}
 else if(data_DC_wrapper_pointer->type1.channel==ADC1_DC3){
-tempresult[2]+= data_DC_wrapper_pointer->type1.data;}
+tempresult[2]+= data_DC_wrapper_pointer->type1.data;
+data_in_counter[2]++;
+}
 else if(data_DC_wrapper_pointer->type1.channel==ADC1_BAT){
-tempresult[3]+= data_DC_wrapper_pointer->type1.data;}
+tempresult[3]+= data_DC_wrapper_pointer->type1.data;
+data_in_counter[3]++;
+}
 
 }
 
-*adc_dc_results_pointers[0]= tempresult[0]/(rxlength*SOC_ADC_DIGI_RESULT_BYTES);
-*adc_dc_results_pointers[1]= tempresult[1]/(rxlength*SOC_ADC_DIGI_RESULT_BYTES);
-*adc_dc_results_pointers[2]= tempresult[2]/(rxlength*SOC_ADC_DIGI_RESULT_BYTES);
-*adc_dc_results_pointers[3]= tempresult[3]/(rxlength*SOC_ADC_DIGI_RESULT_BYTES);
+for (int i=0;i<4;i++){
+*adc_dc_results_pointers[i]= tempresult[i]/data_in_counter[i];
 
-
-
+}
 
 for (int i=0;i<4; i++){
 
@@ -669,7 +671,8 @@ pres_Status=(1<<(2*i));
 
 for (int i=0;i<3;i++){
 
-if((MAX_DC_VIN<*adc_dc_voltage_pointers[i]) | (MIN_DC_VIN>*adc_dc_voltage_pointers[i]) |(MAX_DC_VOUT<*adc_dc_voltage_pointers[3]) |(MIN_DC_VOUT>*adc_dc_voltage_pointers[3]) ){
+if((MAX_DC_VIN<*adc_dc_voltage_pointers[i]) | (MIN_DC_VIN>*adc_dc_voltage_pointers[i]) |
+(MAX_DC_VOUT<*adc_dc_voltage_pointers[3]) |(MIN_DC_VOUT>*adc_dc_voltage_pointers[3]) ){
 
 mcpwm_generator_set_force_level(generators_DC_control[i][0] , 1, true);
 
@@ -709,9 +712,7 @@ mcpwm_generator_set_force_level(generators_DC_control[i][1] , 0, true);
 
 dc_pwm_changer_BUCK(&newtickBUCK[i], *adc_dc_voltage_pointers[i], *adc_dc_voltage_pointers[3], mask, comparators_DC_control[i]);
 
-
 }
-
 
 }
 
