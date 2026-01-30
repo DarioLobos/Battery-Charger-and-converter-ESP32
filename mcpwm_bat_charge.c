@@ -18,10 +18,10 @@ static mcpwm_cmpr_handle_t comparators_DC_control[3];
 static mcpwm_gen_handle_t generators_DC_control[3][3];
 
 
-static void mosfet_signal_DC(mcpwm_gen_handle_t gena, mcpwm_gen_handle_t genb,mcpwm_gen_handle_t genc, mcpwm_cmpr_handle_t compa){
+static void mosfet_signal_DC(mcpwm_gen_handle_t gena, mcpwm_gen_handle_t genb, mcpwm_cmpr_handle_t compa){
 
 
-// M3([3]c        M2[2]b
+// M3[0]]c          D
 // |                |
 // |______COil______|
 // |                |
@@ -37,24 +37,14 @@ MCPWM_GEN_COMPARE_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, compa,
 MCPWM_GEN_ACTION_LOW)));
 
 mcpwm_dead_time_config_t dead_time_config = {
-.posedge_delay_ticks = DELAYTIMEDC,
+.posedge_delay_ticks = 0,
 .negedge_delay_ticks = 0
 };
 
-ESP_ERROR_CHECK(mcpwm_generator_set_dead_time(gena, gena, &dead_time_config));
-
-dead_time_config.posedge_delay_ticks = 0;
-dead_time_config.negedge_delay_ticks = DELAYTIMEDC;
 dead_time_config.flags.invert_output = false;
 
+
 ESP_ERROR_CHECK(mcpwm_generator_set_dead_time(gena, genb, &dead_time_config));
-
-dead_time_config.posedge_delay_ticks = 0;
-dead_time_config.negedge_delay_ticks = 0;
-dead_time_config.flags.invert_output = true;
-
-ESP_ERROR_CHECK(mcpwm_generator_set_dead_time(gena, genc, &dead_time_config));
-
 
 
 }
@@ -102,26 +92,26 @@ static void timer_setup_DC (void){
         ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparators_DC_control[i], COMP_VALUE_DC));
 };
 
-// Each operator have 3 generators
+// Each operator have 2 generators
 
     ESP_LOGI(TAG, "Create generators");
-    const int gen_gpios[3][3] = {
-{GEN_GPIO_DC1_1,GEN_GPIO_DC1_2,GEN_GPIO_DC1_3},
-{GEN_GPIO_DC2_1,GEN_GPIO_DC2_2,GEN_GPIO_DC2_3},
-{GEN_GPIO_DC3_1,GEN_GPIO_DC3_2,GEN_GPIO_DC3_3}};
+    const int gen_gpios[3][2] = {
+{GEN_GPIO_DC1P,GEN_GPIO_DC1N},
+{GEN_GPIO_DC2P,GEN_GPIO_DC2N},
+{GEN_GPIO_DC3P,GEN_GPIO_DC3N}};
 
 
     mcpwm_generator_config_t gen_config = {};
 
     for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++){
+		for (int j = 0; j < 2; j++){
         	gen_config.gen_gpio_num = gen_gpios[i][j];
         ESP_ERROR_CHECK(mcpwm_new_generator(operators_DC_control[i], &gen_config, &generators_DC_control[i][j]));
     }
 }
     
     for (int i = 0; i < 3; ++i) {
- 	mosfet_signal_DC(generators_DC_control[i][0],generators_DC_control[i][1], generators_DC_control[i][2],comparators_DC_control[i] );
+ 	mosfet_signal_DC(generators_DC_control[i][0],generators_DC_control[i][1],comparators_DC_control[i] );
 
 }
 

@@ -142,11 +142,11 @@
 //36 us 
 
 
-#define GEN_GPIO_AC_MOS1_H     0
-#define GEN_GPIO_AC_MOS2_H     2
-#define GEN_GPIO_BOOS_H  	   4
+#define GEN_GPIO_AC_MOS1_H     14
+#define GEN_GPIO_AC_MOS2_H     12
+#define GEN_GPIO_BOOS_H  	   13
 #define GEN_GPIO_AC_MOS1_L     5
-#define GEN_GPIO_AC_MOS2_L     15
+#define GEN_GPIO_AC_MOS2_L     19
 #define GEN_GPIO_BOOS_L  	   18
 
 // ------------------------------------
@@ -178,17 +178,14 @@
 //  4 us 
 
 
-#define GEN_GPIO_DC1_1    33
-#define GEN_GPIO_DC1_2    25
-#define GEN_GPIO_DC1_3    26
+#define GEN_GPIO_DC1P    33
+#define GEN_GPIO_DC1N    25
 
-#define GEN_GPIO_DC2_1    27
-#define GEN_GPIO_DC2_2    14
-#define GEN_GPIO_DC2_3    12
+#define GEN_GPIO_DC2P    26
+#define GEN_GPIO_DC2N    27
 
-#define GEN_GPIO_DC3_1    17
-#define GEN_GPIO_DC3_2    16
-#define GEN_GPIO_DC3_3    23
+#define GEN_GPIO_DC3P    1
+#define GEN_GPIO_DC3N    3
 
 
 
@@ -241,6 +238,35 @@
 #define MAX_COMP_L	34	 
 #define MIN_COMP_L	4	 
 
+// READING LIMITS FOR DC  RESISTOR BRIDGE R2 10K R1 56K 
+// 14V EQUAL TO 2121 mV measured
+// 16v EQUAl TO 2420 mV measured
+// 9v EQUAL TO 1363 mV measured
+
+#define MAX_DC_VIN 2424 
+#define MAX_DC_VOUT 2121 
+#define NON_DC_VOUT 2061 
+#define MIN_DC_VOUT 1818
+#define MIN_DC_VIN 1363
+
+// duty cycles 
+#define DC_MIN_D_BOOSTER 2
+#define DC_MAX_D_BOOSTER 20
+
+#define DC_MIN_D_BUCK 2
+#define DC_MAX_D_BUCK 40
+
+#define DC_MIN_D_BUCK_BOOST 19
+#define DC_MAX_D_BUCK_BOOST 23
+
+
+// THIS DEFINES RATE OF CHANGE ACOORDING DC LOAD AND MUST BE TESTED
+#define GRADIENT_DC_HIGH 	300
+#define GRADIENT_DC_MID 	200
+#define GRADIENT_DC_LOW 	300
+
+
+
 	 
 // ------------------------------------
 //GPIO FOR BOOSTER INPUT TO IDENTIFY USED BOOSTER WITH INTERRUPT
@@ -254,6 +280,12 @@
 
 #define INPUT_BOOSTER_MASK (1ULL<<GPIO_INPUT_BOOSTER)
 
+// THIS DEFINES RATE OF CHANGE ACOORDING AC LOAD AND MUST BE TESTED
+#define GRADIENT_BOOST_hIGH 300
+#define GRADIENT_BOOST_MID 200
+#define GRADIENT_BOOST_LOW 100
+
+
 // ------------------------------------
 //GPIOS FOR KEYPAD 4x3 (what i have)
 // ------------------------------------
@@ -263,14 +295,14 @@
 // BE SURE THAT SPECIAL KEYS ARE ATTACHED TO THE THIRD COLUMN AND ROW
 // COLUMNS ARE DEFINED AS OUTPUT AND ROWS AS INPUT
 
-#define GPIO_KEYPADROW0 	19
-#define GPIO_KEYPADROW1 	18
-#define GPIO_KEYPADROW2 	5
-#define GPIO_KEYPADROW3 	17
+#define GPIO_KEYPADROW0 	17
+#define GPIO_KEYPADROW1 	16
+#define GPIO_KEYPADROW2 	4
+#define GPIO_KEYPADROW3 	2
 
 #define GPIO_KEYPADCOL0 	16
-#define GPIO_KEYPADCOL1 	4
-#define GPIO_KEYPADCOL2 	2
+#define GPIO_KEYPADCOL1 	15
+#define GPIO_KEYPADCOL2 	0
 
 #define INPUT_ROW_NUMBERS_MASK (1ULL<<GPIO_KEYPADROW0 | 1ULL<<GPIO_KEYPADROW1 | 1ULL<<GPIO_KEYPADROW2 | 1ULL<<GPIO_KEYPADROW3 )
 

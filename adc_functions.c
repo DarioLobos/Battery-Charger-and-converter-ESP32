@@ -177,9 +177,9 @@ int measured = 0;
 
 int offsetL=0;
 
-int newtickH= MIN_COMP_H;
+static volatile int newtickH= MIN_COMP_H;
 
-int newtickL= MIN_COMP_L;
+static volatile int newtickL= MIN_COMP_L;
 
 int booster;
 
@@ -231,7 +231,7 @@ mcpwm_comparator_set_compare_value(comparatorsBoosters[1], MIN_COMP_L);
 
 }else if (newtickL>MIN_COMP_L){
 
-if (offsetL>300){
+if (offsetL>GRADIENT_BOOST_hIGH){
 if(newtickL-5>MIN_COMP_L){
 
 newtickL -= 5;
@@ -248,7 +248,7 @@ mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
 
 }
 
-}else if (offsetL>200){
+}else if (offsetL>GRADIENT_BOOST_MID){
 
 if(newtickL-2>MIN_COMP_L){
 
@@ -272,7 +272,7 @@ else if(measured < nomAc){
 
 }else if (newtickL<MAX_COMP_L){
 
-if (offsetL>300){
+if (offsetL>GRADIENT_BOOST_hIGH){
 if(newtickL+5<MAX_COMP_L){
 
 newtickL += 5;
@@ -289,7 +289,7 @@ mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
 
 }
 
-}else if (offsetL>200){
+}else if (offsetL>GRADIENT_BOOST_MID){
 
 if(newtickL+2<MIN_COMP_L){
 
@@ -324,13 +324,286 @@ vTaskNotifyGiveFromISR(dc_pwm_control_task, &xHigherPriorityTaskWoken);
     return (xHigherPriorityTaskWoken = pdTRUE);
 }
 
+void dc_pwm_changer_BOOSTER(int *tick, int adc_dc_results_vin, int adc_dc_results_vout, int mask, mcpwm_cmpr_handle_t  comparator){
+
+//boost
+
+if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_HIGH)) {
+
+if (*tick<(DC_MAX_D_BOOSTER -3)){
+
+*tick=*tick+3;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+}
+else if(*tick<(DC_MAX_D_BOOSTER-2)){
+
+*tick=*tick+2;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+else if(*tick<(DC_MAX_D_BOOSTER-1)){
+
+*tick=*tick+2;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+
+}else if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_MID)) {
+
+if(*tick<(DC_MAX_D_BOOSTER-2)){
+
+*tick=*tick+2;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+else if(*tick<(DC_MAX_D_BOOSTER-1)){
+
+*tick=*tick+1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+
+}else if(((NON_DC_VOUT-adc_dc_results_vout)>100)) {
+
+if(*tick<(DC_MAX_D_BOOSTER-1)){
+
+*tick=*tick+1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+
+
+
+} 
+else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_HIGH)) {
+
+if (*tick<(DC_MIN_D_BOOSTER+3)){
+
+*tick=*tick-3;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+}
+else if(*tick<(DC_MIN_D_BOOSTER+2)){
+
+*tick=*tick-2;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+else if(*tick<(DC_MIN_D_BOOSTER+1)){
+
+*tick=*tick-1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+
+}else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_MID)) {
+
+if(*tick<(DC_MIN_D_BOOSTER+2)){
+
+*tick=*tick-2;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+else if(*tick<(DC_MIN_D_BOOSTER+1)){
+
+*tick=*tick-1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+
+}else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_LOW)) {
+
+if(*tick<(DC_MAX_D_BOOSTER+1)){
+
+*tick=*tick-1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+
+
+
+}
+}
+
+void dc_pwm_changer_BUCK(int *tick, int adc_dc_results_vin, int adc_dc_results_vout, int mask, mcpwm_cmpr_handle_t  comparator){
+
+//buck
+
+if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_HIGH)) {
+
+if (*tick<(DC_MAX_D_BUCK -3)){
+
+*tick=*tick+3;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+}
+else if(*tick<(DC_MAX_D_BUCK-2)){
+
+*tick=*tick+2;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+else if(*tick<(DC_MAX_D_BUCK-1)){
+
+*tick=*tick+2;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+
+}else if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_MID)) {
+
+if(*tick<(DC_MAX_D_BUCK-2)){
+
+*tick=*tick+2;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+else if(*tick<(DC_MAX_D_BUCK-1)){
+
+*tick=*tick+1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+
+}else if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_LOW)) {
+
+if(*tick<(DC_MAX_D_BUCK-1)){
+
+*tick=*tick+1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+
+} 
+else if(((NON_DC_VOUT-adc_dc_results_vout)<300)) {
+
+if (*tick<(DC_MIN_D_BUCK+3)){
+
+*tick=*tick-3;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+}
+else if(*tick<(DC_MIN_D_BUCK+2)){
+
+*tick=*tick-2;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+else if(*tick<(DC_MIN_D_BUCK+1)){
+
+*tick=*tick-1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+
+}else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_MID)) {
+
+if(*tick<(DC_MIN_D_BUCK+2)){
+
+*tick=*tick-2;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+else if(*tick<(DC_MIN_D_BUCK+1)){
+
+*tick=*tick-1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+
+}else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_LOW)) {
+
+if(*tick<(DC_MAX_D_BUCK+1)){
+
+*tick=*tick-1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+			}
+		}
+	}
+
+
+void dc_pwm_changer_BUCK_BOOST(int *tick, int adc_dc_results_vin, int adc_dc_results_vout, int mask, mcpwm_cmpr_handle_t  comparator){
+
+if(((NON_DC_VOUT-adc_dc_results_vout)>100)) {
+
+if (*tick<(DC_MAX_D_BUCK_BOOST -1)){
+
+*tick=*tick+1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+}
+}else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_LOW)) {
+
+if (*tick<(DC_MIN_D_BUCK_BOOST +1)){
+
+*tick=*tick-1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+			}
+ 		}
+	}
+
 void dc_pwm_control(void *pvparameter ){
 
 int tempresult[4];
 
-static volatile uint16_t prev_Status=0;
-
 uint16_t pres_Status=0;
+
+int newtickBOOSTER[3]= { DC_MIN_D_BOOSTER, DC_MIN_D_BOOSTER , DC_MIN_D_BOOSTER };
+
+int newtickBUCK[3]= {DC_MIN_D_BUCK, DC_MIN_D_BUCK, DC_MIN_D_BUCK};
+
+static volatile int newtickBUCK_BOOST[3]= {DC_MIN_D_BUCK_BOOST, DC_MIN_D_BUCK_BOOST, DC_MIN_D_BUCK_BOOST};
+
+
 
 /*
 to do faster I use a mask of bits 2 bits for each Channel asking if Voltage read was:
@@ -343,6 +616,7 @@ and to make the needed transition if change.
 */
 
 for(;;){
+
 adc_continuous_read(adc_handle_continous,*ADC_BUFFER, ADC_FRAME_SIZE,&rxlength,0 );
 
 adc_continuous_flush_pool( adc_handle_continous);
@@ -364,17 +638,17 @@ tempresult[3]+= data_DC_wrapper_pointer->type1.data;}
 
 }
 
-pointer_ADC_results_AC[0]= tempresult[0]/(rxlength*SOC_ADC_DIGI_RESULT_BYTES);
-pointer_ADC_results_AC[1]= tempresult[1]/(rxlength*SOC_ADC_DIGI_RESULT_BYTES);
-pointer_ADC_results_AC[2]= tempresult[2]/(rxlength*SOC_ADC_DIGI_RESULT_BYTES);
-pointer_ADC_results_AC[3]= tempresult[3]/(rxlength*SOC_ADC_DIGI_RESULT_BYTES);
+*adc_dc_results_pointers[0]= tempresult[0]/(rxlength*SOC_ADC_DIGI_RESULT_BYTES);
+*adc_dc_results_pointers[1]= tempresult[1]/(rxlength*SOC_ADC_DIGI_RESULT_BYTES);
+*adc_dc_results_pointers[2]= tempresult[2]/(rxlength*SOC_ADC_DIGI_RESULT_BYTES);
+*adc_dc_results_pointers[3]= tempresult[3]/(rxlength*SOC_ADC_DIGI_RESULT_BYTES);
+
+
 
 
 for (int i=0;i<4; i++){
 
-adc_cali_raw_to_voltage(*adc_cont_out_handle[i], (uint32_t) pointer_ADC_results_AC[i], adc_dc_voltage_pointers[i]);
-
-
+adc_cali_raw_to_voltage(*adc_cont_out_handle[i], (uint32_t) adc_dc_results_pointers[i], adc_dc_voltage_pointers[i]);
 
 	}
 
@@ -393,236 +667,55 @@ pres_Status=(1<<(2*i));
 
 }
 
+for (int i=0;i<3;i++){
 
+if((MAX_DC_VIN<*adc_dc_voltage_pointers[i]) | (MIN_DC_VIN>*adc_dc_voltage_pointers[i]) |(MAX_DC_VOUT<*adc_dc_voltage_pointers[3]) |(MIN_DC_VOUT>*adc_dc_voltage_pointers[3]) ){
 
-if ((prev_Status&3)!=(pres_Status&3)){
+mcpwm_generator_set_force_level(generators_DC_control[i][0] , 1, true);
 
-if (((prev_Status&3)==2) & ((pres_Status&3)==0)){
-// device 1
-// boost to buck
+} 
+else {
 
-PENDING 
+int mask =3*2^(2*i);
 
-mcpwm_generator_set_force_level(generators[i], -1, true));
+if ((pres_Status&mask)==2){
+//boost
 
-}
-else if (((prev_Status&3)==2) & ((pres_Status&3)==1)){
-// device 1
-//boost to buck-boost
+mcpwm_generator_set_force_level(generators_DC_control[i][0] , 0, true);
 
-PENDING 
+mcpwm_generator_set_force_level(generators_DC_control[i][1] , -1, true);
 
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
+dc_pwm_changer_BOOSTER(&newtickBOOSTER[i], *adc_dc_voltage_pointers[i], *adc_dc_voltage_pointers[3], mask, comparators_DC_control[i]);
 
 }
+else if ((pres_Status&mask)==1){
+// buck-boost
 
-}else if (((prev_Status&3)==1) & ((pres_Status&3)==0)){
-// device 1
-//buck-boost to buck
+mcpwm_generator_set_force_level(generators_DC_control[i][0] , -1, true);
 
-PENDING 
+mcpwm_generator_set_force_level(generators_DC_control[i][1] , -1, true);
 
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
-
-
-}
-else if (((prev_Status&3)==1) & ((pres_Status&3)==2)){
-// device 1
-//buck-boost to boost
-
-PENDING 
-
-mcpwm_generator_set_force_level(generators[i], -1, true));
+dc_pwm_changer_BUCK_BOOST(&newtickBUCK_BOOST[i], *adc_dc_voltage_pointers[i], *adc_dc_voltage_pointers[3], mask, comparators_DC_control[i]);
 
 
 }
 
-else if (((prev_Status&3)==0) & ((pres_Status&3)==1)){
-// device 1
-//buck to buck-boost
+else {
+// buck
 
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
+mcpwm_generator_set_force_level(generators_DC_control[i][0] , -1, true);
 
+mcpwm_generator_set_force_level(generators_DC_control[i][1] , 0, true);
 
-}
-else if (((prev_Status&3)==0) & ((pres_Status&3)==2)){
-// device 1
-//buck to boost
-
-
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
+dc_pwm_changer_BUCK(&newtickBUCK[i], *adc_dc_voltage_pointers[i], *adc_dc_voltage_pointers[3], mask, comparators_DC_control[i]);
 
 
 }
 
 
-if (((prev_Status&12)==(2<<2)) & ((pres_Status&3)==0)){
-// device 2
-// boost to buck
-
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
-
 }
 
-else if (((prev_Status & 12)==(2<<2)) & ((pres_Status&12)==(1<<2))){
-// device 2
-//boost to buck-boost
-
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
-
 }
-
-else if (((prev_Status&3)==(1<<2)) & ((pres_Status&3)==0)){
-// device 2
-//buck-boost to buck
-
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
-
-}
-else if (((prev_Status&3)==(1<<2)) & ((pres_Status&3)==(2<<2))){
-// device 2
-//buck-boost to boost
-
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
-
-}
-
-else if (((prev_Status&3)==0) & ((pres_Status&3)==(1<<2))){
-// device 2
-//buck to buck-boost
-
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
-
-}
-else if (((prev_Status&3)==0) & ((pres_Status&3)==(2<<2))){
-// device 2
-//buck to boost
-
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
-
-}
-
-if (((prev_Status&12)==(2<<2)) & ((pres_Status&3)==0)){
-// device 2
-// boost to buck
-
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
-
-}
-
-else if (((prev_Status & 12)==(2<<2)) & ((pres_Status&12)==(1<<2))){
-// device 2
-//boost to buck-boost
-
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
-
-}
-
-else if (((prev_Status&12)==(1<<2)) & ((pres_Status&3)==0)){
-// device 2
-//buck-boost to buck
-
-}
-else if (((prev_Status&12)==(1<<2)) & ((pres_Status&3)==(2<<2))){
-// device 2
-//buck-boost to boost
-
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
-
-}
-
-else if (((prev_Status&12)==0) & ((pres_Status&3)==(1<<2))){
-// device 2
-//buck to buck-boost
-
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
-
-}
-else if (((prev_Status&12)==0) & ((pres_Status&3)==(2<<2))){
-// device 2
-//buck to boost
-
-PENDING 
-// 1 OR -1
-mcpwm_generator_set_force_level(generators[i], -1, true));
-
-
-
-}
-
-
-
-
-if (((prev_Status&48)==(2<<2)) & ((pres_Status&3)==0)){
-// device 2
-// boost to buck
-
-}
-
-else if (((prev_Status & 48)==(2<<2)) & ((pres_Status&12)==(1<<2))){
-// device 3
-//boost to buck-boost
-
-}
-
-else if (((prev_Status&48)==(1<<2)) & ((pres_Status&3)==0)){
-// device 3
-//buck-boost to buck
-
-}
-else if (((prev_Status&48)==(1<<2)) & ((pres_Status&3)==(2<<2))){
-// device 3
-//buck-boost to boost
-
-}
-
-else if (((prev_Status&48)==0) & ((pres_Status&3)==(1<<2))){
-// device 3
-//buck to buck-boost
-
-}
-else if (((prev_Status&48)==0) & ((pres_Status&3)==(2<<2))){
-// device 3
-//buck to boost
-
-}
-
 
 }
 
@@ -693,7 +786,5 @@ dig_cfg.adc_pattern = adc_pattern;
     };
     ESP_ERROR_CHECK(adc_continuous_register_event_callbacks(adc_handle_continous, &cbs, NULL));
     ESP_ERROR_CHECK(adc_continuous_start(adc_handle_continous));
-
-
 
 }
