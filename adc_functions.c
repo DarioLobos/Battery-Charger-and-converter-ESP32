@@ -325,7 +325,7 @@ vTaskNotifyGiveFromISR(dc_pwm_control_task, &xHigherPriorityTaskWoken);
     return (xHigherPriorityTaskWoken = pdTRUE);
 }
 
-void dc_pwm_changer_BOOSTER(int *tick, int adc_dc_results_vin, int adc_dc_results_vout, int mask, mcpwm_cmpr_handle_t  comparator){
+void dc_pwm_changer_BOOSTER(volatile int *tick, int adc_dc_results_vin, int adc_dc_results_vout, int mask, mcpwm_cmpr_handle_t  comparator){
 
 //boost
 
@@ -439,7 +439,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 }
 }
 
-void dc_pwm_changer_BUCK(int *tick, int adc_dc_results_vin, int adc_dc_results_vout, int mask, mcpwm_cmpr_handle_t  comparator){
+void dc_pwm_changer_BUCK(volatile int *tick, int adc_dc_results_vin, int adc_dc_results_vout, int mask, mcpwm_cmpr_handle_t  comparator){
 
 //buck
 
@@ -559,7 +559,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 	}
 
 
-void dc_pwm_changer_BUCK_BOOST(int *tick, int adc_dc_results_vin, int adc_dc_results_vout, int mask, mcpwm_cmpr_handle_t  comparator){
+void dc_pwm_changer_BUCK_BOOST(volatile int *tick, int adc_dc_results_vin, int adc_dc_results_vout, int mask, mcpwm_cmpr_handle_t  comparator){
 
 if(((NON_DC_VOUT-adc_dc_results_vout)>100)) {
 

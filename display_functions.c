@@ -20,6 +20,10 @@
 #include "portmacro.h"
 #include "background.c"
 #include "setuptimebackground.c"
+#include "setontimebackground.c"
+#include "setofftimebackground.c"
+#include "schedulerbackground.c"
+#include "scheduleroffbackground.c"
 #include "font_numbers.c"
 #include "adc_functions.c"
 #include "ic2_commands_RTC_CLK.c"
@@ -72,6 +76,21 @@ static uint8_t array_of_commands_ISR_timeS2[7]={CASET,S2TCASETL,S2TCASETH,RASET,
 static uint8_t * pointer_to_commands_isr_timeS2=&array_of_commands_ISR_timeS2[0];
 
 
+static uint8_t array_of_commands_ISR_SCH_timeH1[7]={CASET,H1TCASETL,H1TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
+
+static uint8_t * pointer_to_commands_isr_SCH_timeH1=&array_of_commands_ISR_timeH1[0];
+
+static uint8_t array_of_commands_ISR_SCH_timeH2[7]={CASET,H2TCASETL,H2TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
+
+static uint8_t * pointer_to_commands_isr_SCH_timeH2=&array_of_commands_ISR_timeH2[0];
+
+static uint8_t array_of_commands_ISR_SCH_timeM1[7]={CASET,M1TCASETL,M1TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
+
+static uint8_t * pointer_to_commands_isr_SCH_timeM1=&array_of_commands_ISR_timeM1[0];
+
+static uint8_t array_of_commands_ISR_SCH_timeM2[7]={CASET,M2TCASETL,M2TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
+
+static uint8_t * pointer_to_commands_isr_SCH_timeM2=&array_of_commands_ISR_timeM2[0];
 
 uint8_t array_of_commands_ISR_AC[7]={CASET,ACCASETL,ACCASETH,RASET,ACRASETL,ACRASETH,RAMWR};
 
@@ -85,6 +104,13 @@ static uint8_t array_of_commands_ISR_BANNERST[7]={CASET,STCASETL,STCASETH,RASET,
 
 static uint8_t * pointer_to_commands_isr_BANNERST=&array_of_commands_ISR_BANNERST[0];
 
+static uint8_t array_of_commands_ISR_BANNERSCH[7]={CASET,STCASETL,STCASETH,RASET,STRASETL,STRASETH,RAMWR};
+
+static uint8_t * pointer_to_commands_isr_BANNERSCH=&array_of_commands_ISR_BANNERST[0];
+
+
+
+
 spi_device_handle_t spi;
 
 
@@ -93,6 +119,14 @@ static void display_init(void *pvparameter){
 display_allocation();
 
 setup_time_bkg_allocation();
+
+seton_time_bkg_allocation();
+
+setoff_time_bkg_allocation();
+
+scheduler_bkg_allocation();
+
+scheduleroff_bkg_allocation();
 
 xTaskNotifyGive(xtaskHandleFrame);
 
@@ -141,6 +175,8 @@ frame_AC();
 frame_DC();
 frame_set_time();
 frame_digits_time();
+
+
 
 xTaskNotifyGive(xtaskHandleDisplay);
 
@@ -378,7 +414,7 @@ if ((received_digit>0) & (prev_H1!= received_digit)){
 		
 		for(int i=0;i<8;i++){
 			if((font_bits[received_digit][j]&(1<<i))>0){
-				timeH1_pointers_to_send[i][j]=ACCOLOR;
+				timeH1_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
 				timeH1_pointers_to_send[i][j]=H1_time_pointers[i][j];
@@ -403,7 +439,7 @@ if (prev_H2!= received_digit){
 		
 		for(int i=0;i<8;i++){
 			if((font_bits[received_digit][j]&(1<<i))>0){
-				timeH2_pointers_to_send[i][j]=ACCOLOR;
+				timeH2_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
 				timeH2_pointers_to_send[i][j]=H2_time_pointers[i][j];
@@ -430,7 +466,7 @@ if (prev_M1!= received_digit){
 		
 		for(int i=0;i<8;i++){
 			if((font_bits[received_digit][j]&(1<<i))>0){
-				timeM1_pointers_to_send[i][j]=ACCOLOR;
+				timeM1_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
 				timeM1_pointers_to_send[i][j]=M1_time_pointers[i][j];
@@ -455,7 +491,7 @@ if (prev_M2!= received_digit){
 		
 		for(int i=0;i<8;i++){
 			if((font_bits[received_digit][j]&(1<<i))>0){
-				timeM2_pointers_to_send[i][j]=ACCOLOR;
+				timeM2_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
 				timeM2_pointers_to_send[i][j]=M2_time_pointers[i][j];
@@ -481,7 +517,7 @@ if (prev_S1!= received_digit){
 		
 		for(int i=0;i<8;i++){
 			if((font_bits[received_digit][j]&(1<<i))>0){
-				timeS1_pointers_to_send[i][j]=ACCOLOR;
+				timeS1_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
 				timeS1_pointers_to_send[i][j]=S1_time_pointers[i][j];
@@ -506,7 +542,7 @@ if (prev_S2!= received_digit){
 		
 		for(int i=0;i<8;i++){
 			if((font_bits[received_digit][j]&(1<<i))>0){
-				timeS2_pointers_to_send[i][j]=ACCOLOR;
+				timeS2_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
 				timeS2_pointers_to_send[i][j]=S2_time_pointers[i][j];
@@ -699,7 +735,7 @@ time[2]= key<<1;
 		
 		for(int i=0;i<8;i++){
 			if((font_bits[key][j]&(1<<i))>0){
-				timeH1_pointers_to_send[i][j]=ACCOLOR;
+				timeH1_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
 				timeH1_pointers_to_send[i][j]=H1_time_pointers[i][j];
@@ -928,6 +964,434 @@ taskYIELD();
 }
 
 }
+
+void display_update_SET_SCHEDULER_TIME2(void){
+
+int key=-1;
+
+int h1=-1;
+
+//time[0]=seconds time[1]=minutes time[0]=seconds
+
+uint8_t time[2];
+
+for (;;){
+
+key=pressed_key ();
+
+if ((key!=11)){
+
+taskYIELD();
+
+}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
+spi_transmit_isr(spi,false, setoff_time_bkg_pointers[0][0], sizeof(setoff_time_bkg_pointers), true);
+
+
+key=pressed_key();
+
+while ((key!=12)|(key!=1)|key!=2 ){
+
+key=pressed_key();
+
+}
+
+if(key==1){
+
+
+key=pressed_key();
+
+while ((key!=12)|(key>2)|key<0 ){
+
+key=pressed_key();
+
+}
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleResetTime);
+taskYIELD();
+
+}
+
+else if((key>0)&(key<3)){
+
+time[1]= key<<1;
+
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeH1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeH1_pointers_to_send[i][j]=H1_time_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
+
+spi_transmit_isr(spi,false, timeH1_pointers_to_send[0][0], sizeof(timeH1_pointers_to_send), true);
+
+h1=key;
+}
+else if (key==0){
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
+
+spi_transmit_isr(spi,false, H1_time_pointers[0][0], sizeof(H1_time_pointers), true);
+
+
+}
+
+
+key=pressed_key();
+
+while ((key!=12)|!(h1==2 & key<4) |((h1<2) & ((key==0) | (key>0))) ){
+
+key=pressed_key();
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleResetTime);
+taskYIELD();
+
+}
+
+time[1]= time[2] | key;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeH2_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeH2_pointers_to_send[i][j]=H2_time_pointers[i][j];
+
+				}
+		}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH2, sizeof(array_of_commands_ISR_SCH_timeH2), true);
+
+spi_transmit_isr(spi,false, timeH2_pointers_to_send[0][0], sizeof(timeH2_pointers_to_send), true);
+
+
+}
+ 
+key=pressed_key();
+
+while ((key!=12)|(key>6) | (key<0)) {
+
+key=pressed_key();
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleResetTime);
+taskYIELD();
+
+}
+
+
+time[0]= key<<1;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeM1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeM1_pointers_to_send[i][j]=M1_time_pointers[i][j];;
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeM1, sizeof(array_of_commands_ISR_SCH_timeM1), true);
+
+spi_transmit_isr(spi,false, timeM1_pointers_to_send[0][0], sizeof(timeM1_pointers_to_send), true);
+
+
+key=pressed_key();
+
+while ((key!=12)|(key>9) | (key<0)) {
+
+key=pressed_key();
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleResetTime);
+taskYIELD();
+
+}
+
+time[0]= time[1] | key;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeM2_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeM2_pointers_to_send[i][j]=M2_time_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeM2, sizeof(array_of_commands_ISR_SCH_timeM2), true);
+
+spi_transmit_isr(spi,false, timeM2_pointers_to_send[0][0], sizeof(timeM2_pointers_to_send), true);
+
+ic2_setup_alarm2(time[0], time[1]);
+
+alarm_ON();
+
+
+vTaskDelay(pdMS_TO_TICKS(500));
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
+spi_transmit_isr(spi,false, scheduler_bkg_pointers[0][0], sizeof(scheduler_bkg_pointers), true);
+
+vTaskDelay(pdMS_TO_TICKS(1000));
+
+
+xTaskNotifyGive(xtaskHandleResetTime);
+taskYIELD();
+
+}
+
+else{
+
+taskYIELD();
+
+}
+}
+}
+
+
+
+void display_update_SET_SCHEDULER_TIME(void * pvparameters){
+
+int key=-1;
+
+int h1=-1;
+
+//time[0]=seconds time[1]=minutes time[0]=seconds
+
+uint8_t time[2];
+
+
+key=pressed_key ();
+
+if ((key!=11)){
+
+taskYIELD();
+
+}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
+spi_transmit_isr(spi,false, seton_time_bkg_pointers[0][0], sizeof(seton_time_bkg_pointers), true);
+
+
+key=pressed_key();
+
+while ((key!=12)|(key!=1)|key!=2 ){
+
+key=pressed_key();
+
+}
+
+if(key==1){
+
+
+key=pressed_key();
+
+while ((key!=12)|(key>2)|key<0 ){
+
+key=pressed_key();
+
+}
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleResetTime);
+taskYIELD();
+
+}
+
+else if((key>0)&(key<3)){
+
+time[1]= key<<1;
+
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeH1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeH1_pointers_to_send[i][j]=H1_time_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
+
+spi_transmit_isr(spi,false, timeH1_pointers_to_send[0][0], sizeof(timeH1_pointers_to_send), true);
+
+h1=key;
+}
+else if (key==0){
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
+
+spi_transmit_isr(spi,false, H1_time_pointers[0][0], sizeof(H1_time_pointers), true);
+
+
+}
+
+
+key=pressed_key();
+
+while ((key!=12)|!(h1==2 & key<4) |((h1<2) & ((key==0) | (key>0))) ){
+
+key=pressed_key();
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleResetTime);
+taskYIELD();
+
+}
+
+time[1]= time[2] | key;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeH2_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeH2_pointers_to_send[i][j]=H2_time_pointers[i][j];
+
+				}
+		}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH2, sizeof(array_of_commands_ISR_SCH_timeH2), true);
+
+spi_transmit_isr(spi,false, timeH2_pointers_to_send[0][0], sizeof(timeH2_pointers_to_send), true);
+
+
+}
+ 
+key=pressed_key();
+
+while ((key!=12)|(key>6) | (key<0)) {
+
+key=pressed_key();
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleResetTime);
+taskYIELD();
+
+}
+
+
+time[0]= key<<1;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeM1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeM1_pointers_to_send[i][j]=M1_time_pointers[i][j];;
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeM1, sizeof(array_of_commands_ISR_SCH_timeM1), true);
+
+spi_transmit_isr(spi,false, timeM1_pointers_to_send[0][0], sizeof(timeM1_pointers_to_send), true);
+
+
+key=pressed_key();
+
+while ((key!=12)|(key>9) | (key<0)) {
+
+key=pressed_key();
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleResetTime);
+taskYIELD();
+
+}
+
+time[0]= time[1] | key;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeM2_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeM2_pointers_to_send[i][j]=M2_time_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeM2, sizeof(array_of_commands_ISR_SCH_timeM2), true);
+
+spi_transmit_isr(spi,false, timeM2_pointers_to_send[0][0], sizeof(timeM2_pointers_to_send), true);
+
+ic2_setup_alarm1(time[0], time[1]);
+
+vTaskDelay(pdMS_TO_TICKS(500));
+
+display_update_SET_SCHEDULER_TIME2();
+}
+
+else{
+
+taskYIELD();
+
+}
+}
+
 
 
 void display_update_RESET_TIME(void * pvparameters){
