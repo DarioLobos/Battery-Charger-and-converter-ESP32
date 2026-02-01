@@ -18,9 +18,11 @@ static volatile uint16_t* dc_pointers[ROWDC]; // Array of pointers (likely in DR
 static volatile uint16_t* set_time_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
 static volatile uint16_t* H1_time_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
 static volatile uint16_t* H2_time_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
+static volatile uint16_t* D1_time_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
 static volatile uint16_t* M1_time_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
 static volatile uint16_t* M2_time_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
 static volatile uint16_t* S1_time_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
+static volatile uint16_t* D2_time_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
 static volatile uint16_t* S2_time_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
 
 
@@ -1561,7 +1563,7 @@ set_time_pointers[i-STRASETL][j-STCASETL] = background_pointers[i][j] ;
 void frame_digits_time(void){
 
 // Allocate memory for each row in PSRAM
-for (int i = 0; i < STROWARRAY; i++) {
+for (int i = 0; i < ROWTIME; i++) {
     H1_time_pointers[i] = (uint16_t*)heap_caps_malloc(H1COLTIME * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     if (H1_time_pointers[i] == NULL) {
         printf("Failed to allocate DC row %d\n", i);
@@ -1579,7 +1581,7 @@ H1_time_pointers[i-STRASETL][j-H1TCASETL] = background_pointers[i][j] ;
 }
 
 // Allocate memory for each row in PSRAM
-for (int i = 0; i < STROWARRAY; i++) {
+for (int i = 0; i < ROWTIME; i++) {
     H2_time_pointers[i] = (uint16_t*)heap_caps_malloc(H2COLTIME * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     if (H2_time_pointers[i] == NULL) {
         printf("Failed to allocate DC row %d\n", i);
@@ -1596,8 +1598,17 @@ H2_time_pointers[i-STRASETL][j-H1TCASETL] = background_pointers[i][j] ;
 }
 }
 
+for (int i = STRASETL; i < STRASETH+1; i++) {
+
+	for (int j = D1TCASETL; j < D1TCASETH+1 ; j++) {
+
+D1_time_pointers[i-STRASETL][j-D1TCASETL] = background_pointers[i][j] ;
+
+}
+}
+
 // Allocate memory for each row in PSRAM
-for (int i = 0; i < STROWARRAY; i++) {
+for (int i = 0; i < ROWTIME; i++) {
     M1_time_pointers[i] = (uint16_t*)heap_caps_malloc(M1COLTIME * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     if (M1_time_pointers[i] == NULL) {
         printf("Failed to allocate DC row %d\n", i);
@@ -1615,7 +1626,7 @@ M1_time_pointers[i-STRASETL][j-H1TCASETL] = background_pointers[i][j] ;
 }
 
 // Allocate memory for each row in PSRAM
-for (int i = 0; i < STROWARRAY; i++) {
+for (int i = 0; i < ROWTIME; i++) {
     M2_time_pointers[i] = (uint16_t*)heap_caps_malloc(M2COLTIME * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     if (M2_time_pointers[i] == NULL) {
         printf("Failed to allocate DC row %d\n", i);
@@ -1632,8 +1643,18 @@ M2_time_pointers[i-STRASETL][j-M2TCASETL] = background_pointers[i][j] ;
 }
 }
 
+for (int i = STRASETL; i < STRASETH+1; i++) {
+
+	for (int j = D2TCASETL; j < D2TCASETH+1 ; j++) {
+
+D2_time_pointers[i-STRASETL][j-D2TCASETL] = background_pointers[i][j] ;
+
+}
+}
+
+
 // Allocate memory for each row in PSRAM
-for (int i = 0; i < STROWARRAY; i++) {
+for (int i = 0; i < ROWTIME; i++) {
     S1_time_pointers[i] = (uint16_t*)heap_caps_malloc(S1COLTIME * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     if (S1_time_pointers[i] == NULL) {
         printf("Failed to allocate DC row %d\n", i);
@@ -1651,7 +1672,7 @@ S1_time_pointers[i-STRASETL][j-S1TCASETL] = background_pointers[i][j] ;
 }
 
 // Allocate memory for each row in PSRAM
-for (int i = 0; i < STROWARRAY; i++) {
+for (int i = 0; i < ROWTIME; i++) {
     S2_time_pointers[i] = (uint16_t*)heap_caps_malloc(S2COLTIME * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     if (S2_time_pointers[i] == NULL) {
         printf("Failed to allocate DC row %d\n", i);

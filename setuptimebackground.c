@@ -11,8 +11,7 @@
 
 
 
-uint16_t* setup_time_bkg_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
-
+static volatile uint16_t* setup_time_bkg_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
 
 void setup_time_bkg_allocation(void){
 

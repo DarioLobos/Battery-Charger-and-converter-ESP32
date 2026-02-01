@@ -21,6 +21,7 @@
 #include "background.c"
 #include "setuptimebackground.c"
 #include "setontimebackground.c"
+#include "setontime1background.c"
 #include "setofftimebackground.c"
 #include "schedulerbackground.c"
 #include "scheduleroffbackground.c"
@@ -30,18 +31,24 @@
 
 TaskHandle_t xtaskHandleDisplay= NULL;
 TaskHandle_t xtaskHandleFrame = NULL;
-TaskHandle_t xtaskHandleResetTime = NULL;
-
+TaskHandle_t xtaskHandleReset_BKG_Time = NULL;
+TaskHandle_t xtaskHandledisplay_update_DC = NULL;
 
 static volatile uint16_t* ac_pointers_to_send[ROWAC];
+
+static volatile uint16_t* dc_pointers_to_send[ROWDC];
 
 static volatile uint16_t* timeH1_pointers_to_send[ROWTIME];
 
 static volatile uint16_t* timeH2_pointers_to_send[ROWTIME];
 
+static volatile uint16_t* timeD1_pointers_to_send[ROWTIME];
+
 static volatile uint16_t* timeM1_pointers_to_send[ROWTIME];
 
 static volatile uint16_t* timeM2_pointers_to_send[ROWTIME];
+
+static volatile uint16_t* timeD2_pointers_to_send[ROWTIME];
 
 static volatile uint16_t* timeS1_pointers_to_send[ROWTIME];
 
@@ -59,6 +66,10 @@ static uint8_t array_of_commands_ISR_timeH2[7]={CASET,H2TCASETL,H2TCASETH,RASET,
 
 static uint8_t * pointer_to_commands_isr_timeH2=&array_of_commands_ISR_timeH2[0];
 
+static uint8_t array_of_commands_ISR_timeD1[7]={CASET,D1TCASETL,D1TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
+
+static uint8_t * pointer_to_commands_isr_timeD1=&array_of_commands_ISR_timeH2[0];
+
 static uint8_t array_of_commands_ISR_timeM1[7]={CASET,M1TCASETL,M1TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
 
 static uint8_t * pointer_to_commands_isr_timeM1=&array_of_commands_ISR_timeM1[0];
@@ -66,6 +77,10 @@ static uint8_t * pointer_to_commands_isr_timeM1=&array_of_commands_ISR_timeM1[0]
 static uint8_t array_of_commands_ISR_timeM2[7]={CASET,M2TCASETL,M2TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
 
 static uint8_t * pointer_to_commands_isr_timeM2=&array_of_commands_ISR_timeM2[0];
+
+static uint8_t array_of_commands_ISR_timeD2[7]={CASET,D2TCASETL,D2TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
+
+static uint8_t * pointer_to_commands_isr_timeD2=&array_of_commands_ISR_timeH2[0];
 
 static uint8_t array_of_commands_ISR_timeS1[7]={CASET,S1TCASETL,S1TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
 
@@ -76,21 +91,25 @@ static uint8_t array_of_commands_ISR_timeS2[7]={CASET,S2TCASETL,S2TCASETH,RASET,
 static uint8_t * pointer_to_commands_isr_timeS2=&array_of_commands_ISR_timeS2[0];
 
 
-static uint8_t array_of_commands_ISR_SCH_timeH1[7]={CASET,H1TCASETL,H1TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
+static uint8_t array_of_commands_ISR_SCH_timeH1[7]={CASET,SCHH1TCASETL,SCHH1TCASETH,RASET,SCHTIMERASETL,SCHTIMERASETH,RAMWR};
 
-static uint8_t * pointer_to_commands_isr_SCH_timeH1=&array_of_commands_ISR_timeH1[0];
+static uint8_t * pointer_to_commands_isr_SCH_timeH1=&array_of_commands_ISR_SCH_timeH1[0];
 
-static uint8_t array_of_commands_ISR_SCH_timeH2[7]={CASET,H2TCASETL,H2TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
+static uint8_t array_of_commands_ISR_SCH_timeH2[7]={CASET,SCHH2TCASETL,SCHH2TCASETH,RASET,SCHTIMERASETL,SCHTIMERASETH,RAMWR};
 
-static uint8_t * pointer_to_commands_isr_SCH_timeH2=&array_of_commands_ISR_timeH2[0];
+static uint8_t * pointer_to_commands_isr_SCH_timeH2=&array_of_commands_ISR_SCH_timeH2[0];
 
-static uint8_t array_of_commands_ISR_SCH_timeM1[7]={CASET,M1TCASETL,M1TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
+static uint8_t array_of_commands_ISR_SCH_timeD1[7]={CASET,SCHD1TCASETL,SCHD1TCASETH,RASET,SCHTIMERASETL,SCHTIMERASETH,RAMWR};
 
-static uint8_t * pointer_to_commands_isr_SCH_timeM1=&array_of_commands_ISR_timeM1[0];
+static uint8_t * pointer_to_commands_isr_SCH_timeD1=&array_of_commands_ISR_timeH2[0];
 
-static uint8_t array_of_commands_ISR_SCH_timeM2[7]={CASET,M2TCASETL,M2TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
+static uint8_t array_of_commands_ISR_SCH_timeM1[7]={CASET,SCHM1TCASETL,SCHM1TCASETH,RASET,SCHTIMERASETL,SCHTIMERASETH,RAMWR};
 
-static uint8_t * pointer_to_commands_isr_SCH_timeM2=&array_of_commands_ISR_timeM2[0];
+static uint8_t * pointer_to_commands_isr_SCH_timeM1=&array_of_commands_ISR_SCH_timeM1[0];
+
+static uint8_t array_of_commands_ISR_SCH_timeM2[7]={CASET,SCHM2TCASETL,SCHM2TCASETH,RASET,SCHTIMERASETL,SCHTIMERASETH,RAMWR};
+
+static uint8_t * pointer_to_commands_isr_SCH_timeM2=&array_of_commands_ISR_SCH_timeM2[0];
 
 uint8_t array_of_commands_ISR_AC[7]={CASET,ACCASETL,ACCASETH,RASET,ACRASETL,ACRASETH,RAMWR};
 
@@ -106,7 +125,7 @@ static uint8_t * pointer_to_commands_isr_BANNERST=&array_of_commands_ISR_BANNERS
 
 static uint8_t array_of_commands_ISR_BANNERSCH[7]={CASET,STCASETL,STCASETH,RASET,STRASETL,STRASETH,RAMWR};
 
-static uint8_t * pointer_to_commands_isr_BANNERSCH=&array_of_commands_ISR_BANNERST[0];
+static uint8_t * pointer_to_commands_isr_BANNERSCH=&array_of_commands_ISR_BANNERSCH[0];
 
 
 
@@ -175,7 +194,7 @@ frame_AC();
 frame_DC();
 frame_set_time();
 frame_digits_time();
-
+frame_digits_time_SCH();
 
 
 xTaskNotifyGive(xtaskHandleDisplay);
@@ -268,7 +287,7 @@ digits++;
 else if((received_digit=((received_voltage%1000-received_voltage%100)/100)>0) | (digits >-1)){
 digits++; 
 
-	for (int j=digits;j<(digits*8+8);j++){
+	for (int j=digits*8;j<(digits*8+8);j++){
 		for(int i=0;i<8;i++){
 			if((font_bits[received_digit][j]&(1<<i))>0){
 				ac_pointers_to_send[i][j]=ACCOLOR;
@@ -283,7 +302,7 @@ digits++;
 else if((received_digit=((received_voltage%100-received_voltage%10)/10)>0) | (digits >-1)){
 digits++; 
 
-	for (int j=digits;j<(digits*8+8);j++){
+	for (int j=digits*8+8;j<(digits*8+16);j++){
 		for(int i=0;i<8;i++){
 			if((font_bits[received_digit][j]&(1<<i))>0){
 				ac_pointers_to_send[i][j]=ACCOLOR;
@@ -296,11 +315,11 @@ digits++;
 	}
 }
 else {
-received_digit=(received_voltage-received_voltage)%10;
+received_digit=(received_voltage)%10;
 
 digits++; 
 
-	for (int j=digits;j<(digits*8+8);j++){
+	for (int j=digits*8+8;j<(digits*8+16);j++){
 		for(int i=0;i<8;i++){
 			if((font_bits[received_digit][j]&(1<<i))>0){
 				ac_pointers_to_send[i][j]=ACCOLOR;
@@ -312,7 +331,7 @@ digits++;
 		}
 	}
 }
-	for (int j=24;j<32;j++){
+	for (int j=32;j<40;j++){
 		for(int i=0;i<8;i++){
 			if((font_bits[11][j]&(1<<i))>0){
 				ac_pointers_to_send[i][j]=ACCOLOR;
@@ -327,9 +346,129 @@ spi_transmit_isr(spi,true,*pointer_to_commands_isr_ac, sizeof(array_of_commands_
 
 spi_transmit_isr(spi,false, ac_pointers_to_send[0][0], sizeof(ac_pointers_to_send), true);
  
+xTaskNotifyGive(xtaskHandledisplay_update_DC);
 
 }
 }
+
+// THE ONLY VOLTAGE THAT SCREEN SHOW IS THE BATTERY VOLTAGE TO DON'T COMPLICATE THE DEVICE
+
+static void display_update_DC (void *pvparameter){
+
+int received_voltage;
+ 
+int digits;
+
+uint8_t received_digit;
+
+
+// Allocate memory for each row in PSRAM
+for (int i = 0; i < ROWDC; i++) {
+    dc_pointers_to_send[i] = (uint16_t*)heap_caps_malloc(COLDC * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (dc_pointers_to_send[i] == NULL) {
+        printf("Failed to allocate AC row %d\n", i);
+        return;
+        }
+}
+
+
+for(;;){
+
+ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+digits=-1;
+
+received_voltage= *adc_dc_voltage_pointers[3]; 
+
+
+if ((received_digit=received_voltage-received_voltage%1000/1000)>0){
+
+digits=0;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
+				dc_pointers_to_send[i][j]=DCCOLOR;
+				}
+			else{
+				dc_pointers_to_send[i][j]=dc_pointers[i][j];
+
+				}
+		}
+	}
+
+}
+
+else if((received_digit=((received_voltage%1000-received_voltage%100)/100)>0) | (digits >-1)){
+digits++; 
+	for (int j=digits*8;j<(digits*8+8);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
+				dc_pointers_to_send[i][j]=DCCOLOR;
+				}
+			else{
+				dc_pointers_to_send[i][j]=dc_pointers[i][j];
+
+				}
+		}
+	}
+
+
+}
+else if((received_digit=((received_voltage%100-received_voltage%10)/10)>0) | (digits >-1)){
+digits++; 
+	for (int j=digits*8+8;j<(digits*8+16);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
+				dc_pointers_to_send[i][j]=DCCOLOR;
+				}
+			else{
+				dc_pointers_to_send[i][j]=dc_pointers[i][j];
+
+				}
+		}
+	}
+}
+else {
+
+received_digit=received_voltage%10;
+digits++; 
+
+	for (int j=digits*8+8;j<(digits*8+16);j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[received_digit][j]&(1<<i))>0){
+				dc_pointers_to_send[i][j]=DCCOLOR;
+				}
+			else{
+				dc_pointers_to_send[i][j]=dc_pointers[i][j];
+
+				}
+		}
+	}
+}
+
+	for (int j=24;j<32;j++){
+		for(int i=0;i<8;i++){
+			if((font_bits[11][j]&(1<<i))>0){
+				dc_pointers_to_send[i][j]=DCCOLOR;
+				}
+			else{
+				dc_pointers_to_send[i][j]=dc_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_ac, sizeof(array_of_commands_ISR_AC), true);
+
+spi_transmit_isr(spi,false, ac_pointers_to_send[0][0], sizeof(ac_pointers_to_send), true);
+ 
+
+}
+}
+
+
 
 static void display_update_TIME (void *pvparameter){
 
@@ -365,6 +504,15 @@ for (int i = 0; i < ROWTIME; i++) {
         }
 }
 
+
+for (int i = 0; i < ROWTIME; i++) {
+    timeD1_pointers_to_send[i] = (uint16_t*)heap_caps_malloc(D1COLTIME * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (timeD1_pointers_to_send[i] == NULL) {
+        printf("Failed to allocate AC row %d\n", i);
+        return;
+        }
+}
+
 for (int i = 0; i < ROWTIME; i++) {
     timeM1_pointers_to_send[i] = (uint16_t*)heap_caps_malloc(M1COLTIME * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     if (timeM1_pointers_to_send[i] == NULL) {
@@ -380,6 +528,16 @@ for (int i = 0; i < ROWTIME; i++) {
         return;
         }
 }
+for (int i = 0; i < ROWTIME; i++) {
+    timeD2_pointers_to_send[i] = (uint16_t*)heap_caps_malloc(D2COLTIME * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (timeD2_pointers_to_send[i] == NULL) {
+        printf("Failed to allocate AC row %d\n", i);
+        return;
+        }
+}
+
+
+
 
 for (int i = 0; i < ROWTIME; i++) {
     timeS1_pointers_to_send[i] = (uint16_t*)heap_caps_malloc(S1COLTIME * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
@@ -396,6 +554,43 @@ for (int i = 0; i < ROWTIME; i++) {
         return;
         }
 }
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[11][j]&(1<<i))>0){
+				timeD1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeD1_pointers_to_send[i][j]=D1_time_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeD1, sizeof(array_of_commands_ISR_timeD1), true);
+
+spi_transmit_isr(spi,false, timeD1_pointers_to_send[0][0], sizeof(timeD1_pointers_to_send), true);
+
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[11][j]&(1<<i))>0){
+				timeD2_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeD2_pointers_to_send[i][j]=D1_time_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeD2, sizeof(array_of_commands_ISR_timeD2), true);
+
+spi_transmit_isr(spi,false, timeD2_pointers_to_send[0][0], sizeof(timeD2_pointers_to_send), true);
+
+
 
 for(;;){
 
@@ -592,7 +787,7 @@ key=4;
 
 }
 
-if (low_pins_status&(1<<GPIO_KEYPADROW3)){
+if (low_pins_status&(1<<GPIO_KEYPADROW2)){
 
 key=7;
 
@@ -622,7 +817,7 @@ key=5;
 
 }
 
-if (low_pins_status&(1<<GPIO_KEYPADROW3)){
+if (low_pins_status&(1<<GPIO_KEYPADROW2)){
 
 key=8;
 
@@ -653,7 +848,7 @@ key=6;
 
 }
 
-if (low_pins_status&(1<<GPIO_KEYPADROW3)){
+if (low_pins_status&(1<<GPIO_KEYPADROW2)){
 
 key=9;
 
@@ -687,14 +882,6 @@ uint8_t time[3];
 
 for (;;){
 
-key=pressed_key ();
-
-if ((key!=11)){
-
-taskYIELD();
-
-}
-
 spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERST, sizeof(array_of_commands_ISR_BANNERST), true);
 
 spi_transmit_isr(spi,false, setup_time_bkg_pointers[0][0], sizeof(setup_time_bkg_pointers), true);
@@ -721,7 +908,7 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -771,7 +958,7 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -782,7 +969,7 @@ time[2]= time[2] | key;
 		
 		for(int i=0;i<8;i++){
 			if((font_bits[key][j]&(1<<i))>0){
-				timeH2_pointers_to_send[i][j]=ACCOLOR;
+				timeH2_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
 				timeH2_pointers_to_send[i][j]=H2_time_pointers[i][j];
@@ -808,7 +995,7 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -820,7 +1007,7 @@ time[1]= key<<1;
 		
 		for(int i=0;i<8;i++){
 			if((font_bits[key][j]&(1<<i))>0){
-				timeM1_pointers_to_send[i][j]=ACCOLOR;
+				timeM1_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
 				timeM1_pointers_to_send[i][j]=M1_time_pointers[i][j];;
@@ -845,7 +1032,7 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -856,7 +1043,7 @@ time[1]= time[1] | key;
 		
 		for(int i=0;i<8;i++){
 			if((font_bits[key][j]&(1<<i))>0){
-				timeM2_pointers_to_send[i][j]=ACCOLOR;
+				timeM2_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
 				timeM2_pointers_to_send[i][j]=M2_time_pointers[i][j];
@@ -880,7 +1067,7 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -892,7 +1079,7 @@ time[0]= key<<1;
 		
 		for(int i=0;i<8;i++){
 			if((font_bits[key][j]&(1<<i))>0){
-				timeS1_pointers_to_send[i][j]=ACCOLOR;
+				timeS1_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
 				timeS1_pointers_to_send[i][j]=S1_time_pointers[i][j];
@@ -918,7 +1105,7 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -931,7 +1118,7 @@ time[0]= time[0] | key;
 		
 		for(int i=0;i<8;i++){
 			if((font_bits[key][j]&(1<<i))>0){
-				timeS2_pointers_to_send[i][j]=ACCOLOR;
+				timeS2_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
 				timeS2_pointers_to_send[i][j]=S2_time_pointers[i][j];
@@ -975,18 +1162,27 @@ int h1=-1;
 
 uint8_t time[2];
 
-for (;;){
 
-key=pressed_key ();
-
-if ((key!=11)){
-
-taskYIELD();
-
-}
 
 spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
 spi_transmit_isr(spi,false, setoff_time_bkg_pointers[0][0], sizeof(setoff_time_bkg_pointers), true);
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[11][j]&(1<<i))>0){
+				timeD1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeD1_pointers_to_send[i][j]=H1_time_SCH_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeD1, sizeof(array_of_commands_ISR_SCH_timeD1), true);
+
+spi_transmit_isr(spi,false, timeD1_pointers_to_send[0][0], sizeof(timeD1_pointers_to_send), true);
 
 
 key=pressed_key();
@@ -1010,7 +1206,7 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -1027,7 +1223,7 @@ time[1]= key<<1;
 				timeH1_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
-				timeH1_pointers_to_send[i][j]=H1_time_pointers[i][j];
+				timeH1_pointers_to_send[i][j]=H1_time_SCH_pointers[i][j];
 
 				}
 		}
@@ -1043,7 +1239,7 @@ else if (key==0){
 
 spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
 
-spi_transmit_isr(spi,false, H1_time_pointers[0][0], sizeof(H1_time_pointers), true);
+spi_transmit_isr(spi,false, H1_time_SCH_pointers[0][0], sizeof(H1_time_pointers), true);
 
 
 }
@@ -1060,12 +1256,12 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
 
-time[1]= time[2] | key;
+time[1]= time[1] | key;
 
 	for (int j=0;j<8;j++){
 		
@@ -1074,7 +1270,7 @@ time[1]= time[2] | key;
 				timeH2_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
-				timeH2_pointers_to_send[i][j]=H2_time_pointers[i][j];
+				timeH2_pointers_to_send[i][j]=H2_time_SCH_pointers[i][j];
 
 				}
 		}
@@ -1097,7 +1293,7 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -1112,7 +1308,7 @@ time[0]= key<<1;
 				timeM1_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
-				timeM1_pointers_to_send[i][j]=M1_time_pointers[i][j];;
+				timeM1_pointers_to_send[i][j]=M1_time_SCH_pointers[i][j];;
 
 				}
 		}
@@ -1134,7 +1330,7 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -1148,7 +1344,7 @@ time[0]= time[1] | key;
 				timeM2_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
-				timeM2_pointers_to_send[i][j]=M2_time_pointers[i][j];
+				timeM2_pointers_to_send[i][j]=M2_time_SCH_pointers[i][j];
 
 				}
 		}
@@ -1171,7 +1367,7 @@ spi_transmit_isr(spi,false, scheduler_bkg_pointers[0][0], sizeof(scheduler_bkg_p
 vTaskDelay(pdMS_TO_TICKS(1000));
 
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -1180,7 +1376,6 @@ else{
 
 taskYIELD();
 
-}
 }
 }
 
@@ -1196,22 +1391,63 @@ int h1=-1;
 
 uint8_t time[2];
 
+for(;;){
 
-key=pressed_key ();
 
-if ((key!=11)){
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
+spi_transmit_isr(spi,false, seton_time1_bkg_pointers[0][0], sizeof(seton_time1_bkg_pointers), true);
 
+key=pressed_key();
+
+while ((key< 0)){
+
+key=pressed_key();
+
+}
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
 
+
+if(key==11){
+
 spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
-spi_transmit_isr(spi,false, seton_time_bkg_pointers[0][0], sizeof(seton_time_bkg_pointers), true);
+spi_transmit_isr(spi,false, scheduleroff_bkg_pointers[0][0], sizeof(scheduleroff_bkg_pointers), true);
+alarm_OFF();
+vTaskDelay(pdTICKS_TO_MS(1000));
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+taskYIELD();
+
+}
+
+
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[11][j]&(1<<i))>0){
+				timeD1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeD1_pointers_to_send[i][j]=D1_time_SCH_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeD1, sizeof(array_of_commands_ISR_SCH_timeD1), true);
+
+spi_transmit_isr(spi,false, timeD1_pointers_to_send[0][0], sizeof(timeD1_pointers_to_send), true);
+
 
 
 key=pressed_key();
 
-while ((key!=12)|(key!=1)|key!=2 ){
+while ((key!=12)|(key!=1)|(key!=2) ){
 
 key=pressed_key();
 
@@ -1222,7 +1458,7 @@ if(key==1){
 
 key=pressed_key();
 
-while ((key!=12)|(key>2)|key<0 ){
+while ((key!=12)|(key>2)|(key<0) ){
 
 key=pressed_key();
 
@@ -1230,7 +1466,7 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -1247,7 +1483,7 @@ time[1]= key<<1;
 				timeH1_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
-				timeH1_pointers_to_send[i][j]=H1_time_pointers[i][j];
+				timeH1_pointers_to_send[i][j]=H1_time_SCH_pointers[i][j];
 
 				}
 		}
@@ -1263,7 +1499,7 @@ else if (key==0){
 
 spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
 
-spi_transmit_isr(spi,false, H1_time_pointers[0][0], sizeof(H1_time_pointers), true);
+spi_transmit_isr(spi,false, H1_time_SCH_pointers[0][0], sizeof(H1_time_pointers), true);
 
 
 }
@@ -1280,12 +1516,12 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
 
-time[1]= time[2] | key;
+time[1]= time[1] | key;
 
 	for (int j=0;j<8;j++){
 		
@@ -1294,7 +1530,7 @@ time[1]= time[2] | key;
 				timeH2_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
-				timeH2_pointers_to_send[i][j]=H2_time_pointers[i][j];
+				timeH2_pointers_to_send[i][j]=H2_time_SCH_pointers[i][j];
 
 				}
 		}
@@ -1317,7 +1553,7 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -1332,7 +1568,7 @@ time[0]= key<<1;
 				timeM1_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
-				timeM1_pointers_to_send[i][j]=M1_time_pointers[i][j];;
+				timeM1_pointers_to_send[i][j]=M1_time_SCH_pointers[i][j];;
 
 				}
 		}
@@ -1354,7 +1590,7 @@ key=pressed_key();
 
 if(key==12){
 
-xTaskNotifyGive(xtaskHandleResetTime);
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 taskYIELD();
 
 }
@@ -1368,7 +1604,7 @@ time[0]= time[1] | key;
 				timeM2_pointers_to_send[i][j]=TIMECOLOR;
 				}
 			else{
-				timeM2_pointers_to_send[i][j]=M2_time_pointers[i][j];
+				timeM2_pointers_to_send[i][j]=M2_time_SCH_pointers[i][j];
 
 				}
 		}
@@ -1391,10 +1627,10 @@ taskYIELD();
 
 }
 }
+}
 
 
-
-void display_update_RESET_TIME(void * pvparameters){
+void display_update_RESET_BKG_TIME(void * pvparameters){
 
 for(;;){
 
@@ -1423,4 +1659,79 @@ xTaskNotifyGive(xtaskHandleSetTime);
 }
 }
 
+static void device3_scheduler(void *pvparameters){
 
+for(;;){
+
+// CHECK EACH MINUTE
+vTaskDelay(pdTICKS_TO_MS(60000));
+
+// THE SCHEDULER FLAG IS 1 AND MUST READ VOLTAGE AND CHECK THEN IF FLOW TURN OFF DEVICE 3
+if(*ptrflagAlarm1){
+
+//TURN OFF CHARGER TO MEASURE BATTERY
+//suspend task pwm because gonna turn on again generators
+vTaskSuspend(dc_pwm_control_task);
+
+for (int i=0;i<3;i++){
+
+mcpwm_generator_set_force_level(generators_DC_control[i][0] , 1, true);
+
+	}
+// WAIT DISCHARGE OF CAPACITOR PRIORITY IS HIGH SO WILL GET UNBLOCK AFTER TIME PASS
+vTaskDelay(pdTICKS_TO_MS(500));
+
+if(*adc_dc_voltage_pointers[3]<BATLOWCHARGE){
+
+mcpwm_generator_set_force_level(generators_DC_control[2][0] , 1, true);
+mcpwm_generator_set_force_level(generators_DC_control[2][1] , 0, true);
+
+
+flag_device3out=1;
+
+for (int i=0;i<2;i++){
+
+mcpwm_generator_set_force_level(generators_DC_control[i][0] , -1, true);
+
+vTaskResume(dc_pwm_control_task);
+
+alarm_reset();
+
+	}
+}
+else{
+
+flag_device3out=0;
+
+for (int i=0;i<3;i++){
+
+mcpwm_generator_set_force_level(generators_DC_control[i][0] , -1, true);
+
+vTaskResume(dc_pwm_control_task);
+
+alarm_reset();
+
+	}
+
+
+}
+
+}
+
+if(*ptrflagAlarm2){
+
+
+mcpwm_generator_set_force_level(generators_DC_control[2][0] , -1, true);
+mcpwm_generator_set_force_level(generators_DC_control[2][1] , -1, true);
+
+
+flag_device3out=0;
+
+alarm_reset();
+
+	}
+
+
+}
+
+}

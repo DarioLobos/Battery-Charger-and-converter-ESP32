@@ -17,6 +17,7 @@ static mcpwm_cmpr_handle_t comparators_DC_control[3];
 
 static mcpwm_gen_handle_t generators_DC_control[3][3];
 
+static volatile uint8_t flag_on_alarm=0;
 
 static void mosfet_signal_DC(mcpwm_gen_handle_t gena, mcpwm_gen_handle_t genb, mcpwm_cmpr_handle_t compa){
 

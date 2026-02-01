@@ -50,6 +50,7 @@ int *adc_dc_voltage_pointers[4];
 
 static const char *TAG = "error/message:";
 
+static volatile uint8_t flag_device3out=0;
 
 /*---------------------------------------------------------------
         ADC Calibration
@@ -652,7 +653,10 @@ for (int i=0;i<4; i++){
 
 adc_cali_raw_to_voltage(*adc_cont_out_handle[i], (uint32_t) adc_dc_results_pointers[i], adc_dc_voltage_pointers[i]);
 
+*adc_dc_voltage_pointers[i]=*adc_dc_voltage_pointers[i]*((R1+R2)/R1);
+
 	}
+
 
 for (int i=0;i<4; i++){
 
@@ -669,7 +673,21 @@ pres_Status=(1<<(2*i));
 
 }
 
-for (int i=0;i<3;i++){
+int device3out;
+
+if (flag_device3out){
+
+device3out=2;
+
+}
+else{
+
+device3out=3;
+
+}
+
+
+for (int i=0;i<device3out;i++){
 
 if((MAX_DC_VIN<*adc_dc_voltage_pointers[i]) | (MIN_DC_VIN>*adc_dc_voltage_pointers[i]) |
 (MAX_DC_VOUT<*adc_dc_voltage_pointers[3]) |(MIN_DC_VOUT>*adc_dc_voltage_pointers[3]) ){

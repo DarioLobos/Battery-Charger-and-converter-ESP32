@@ -29,7 +29,7 @@ void app_main(void)
     xTaskCreatePinnedToCore(display_init, "display_init", (COLARRAY*ROWARRAY*sizeof(uint16_t)+4096), NULL, TASK_PRIO_4, &xtaskHandleDisplay , CORE0);
 
     xTaskCreatePinnedToCore(display_frames, "display_frames",
-    (ROWTIME*COLTIME*sizeof(uint16_t))+(ROWAC*COLAC*sizeof(uint16_t))+(ROWDC*COLDC*sizeof(uint16_t))+(STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096,
+    (ROWTIME*COLTIME*sizeof(uint16_t))+(ROWAC*COLAC*sizeof(uint16_t))+(ROWDC*COLDC*sizeof(uint16_t))+5*(STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096,
     NULL ,TASK_PRIO_4, &xtaskHandleFrame, CORE1);
 
     xTaskCreatePinnedToCore(timer_mosfet_start, "Mosfet_signal_start", 4096 ,NULL , TASK_PRIO_3, NULL, CORE0);
@@ -40,14 +40,19 @@ void app_main(void)
 
 	xTaskCreatePinnedToCore(booster_selection, "booster_selectionl", 4096 ,NULL , TASK_PRIO_3, &booster_control_task, CORE1);
     
+	xTaskCreatePinnedToCore(device3_scheduler, "device3_scheduler", 4096 ,NULL , TASK_PRIO_3, &booster_control_task, CORE1);
+
 	xTaskCreatePinnedToCore(dc_pwm_control, "pwm_controlDC", 4096 ,NULL , TASK_PRIO_2, &dc_pwm_control_task, CORE0);
 
 	xTaskCreatePinnedToCore(ac_pwm_control, "pwm_controlAC", 4096 ,NULL , TASK_PRIO_2, &pwm_control_task, CORE1);
 
-	xTaskCreatePinnedToCore(display_update_AC, "display_update_AC", (ROWAC*COLAC*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
-
 	xTaskCreatePinnedToCore(display_update_SET_TIME, "display_update_SET_TIME", (STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_1,&xtaskHandleSetTime , tskNO_AFFINITY);
 
-	xTaskCreatePinnedToCore(display_update_RESET_TIME, "display_update_SET_TIME", (STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_1,&xtaskHandleResetTime, tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(display_update_RESET_BKG_TIME, "display_update_RESET_BKG_TIME", (STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_1,&xtaskHandleReset_BKG_Time, tskNO_AFFINITY);
+
+	xTaskCreatePinnedToCore(display_update_AC, "display_update_AC", (ROWAC*COLAC*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
+
+	xTaskCreatePinnedToCore(display_update_DC, "display_update_AC", (ROWDC*COLDC*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_0,&xtaskHandledisplay_update_DC , tskNO_AFFINITY);
+
 
 }

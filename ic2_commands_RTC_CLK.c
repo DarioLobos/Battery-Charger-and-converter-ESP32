@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include "esp_log.h"
 #include "driver/i2c.h"
+#include "freertos/idf_additions.h"
+#include "freertos/projdefs.h"
 #include "portmacro.h"
 #include "sdkconfig.h"
 #include "config_main.h"
@@ -207,7 +209,7 @@ return ret;
 
 static esp_err_t read_alarm2_flag(){
 
-	uint8_t address=ADDRALARMONBITS;
+	uint8_t address=ADDRALARCHK;
     uint8_t *ptraddress=&address;
 
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -226,7 +228,7 @@ return ret;
 
 static esp_err_t read_alarm1_flag(){
 
-	uint8_t address=ADDRALARMONBITS;
+	uint8_t address=ADDRALARCHK;
     uint8_t *ptraddress=&address;
 
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -259,5 +261,5 @@ static esp_err_t alarm_reset(){
     esp_err_t ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, portMAX_DELAY);
 
 return ret;
-
+ 
 }
