@@ -11,6 +11,64 @@
 #define CORE1               1
 
 // ------------------------------------
+// GPIO used
+// ------------------------------------
+
+// GPIO FOR AC BOOSTER
+#define GEN_GPIO_AC_MOS1_H  	14
+#define GEN_GPIO_AC_MOS2_H   	12
+#define GEN_GPIO_BOOS_H  		13    
+#define GEN_GPIO_AC_MOS1_L   	5
+#define GEN_GPIO_AC_MOS2_L 		19
+#define GEN_GPIO_BOOS_L  		18
+
+// GPIO FOR BOSTER SELECTION
+#define GPIO_INPUT_BOOSTER	 	23    
+
+// GPIO FOR DC CHARGER
+#define GEN_GPIO_DC1P    33
+#define GEN_GPIO_DC1N    25
+
+#define GEN_GPIO_DC2P    26
+#define GEN_GPIO_DC2N    27
+
+#define GEN_GPIO_DC3P    1
+#define GEN_GPIO_DC3N    3
+
+// GPIO FOR ADC
+
+// GPIO 39
+#define ADC1_AC          ADC_CHANNEL_3
+
+// GPIO32
+#define ADC1_DC1          ADC_CHANNEL_4
+
+// GPIO36
+#define ADC1_DC2          ADC_CHANNEL_0
+
+// GPIO34
+#define ADC1_DC3          ADC_CHANNEL_6
+
+// GPIO 35
+#define ADC1_BAT          ADC_CHANNEL_7
+
+// GPIO FOR KEYPAD
+
+#define GPIO_KEYPADROW0 	17
+#define GPIO_KEYPADROW1 	16   //////////////// must be added mcp23017 and revised keypad program
+#define GPIO_KEYPADROW2 	4
+#define GPIO_KEYPADROW3 	2
+
+#define GPIO_KEYPADCOL0 	16    ///////////////
+#define GPIO_KEYPADCOL1 	15
+#define GPIO_KEYPADCOL2 	0
+
+// GPIO FOR IC2
+#define SDA_PIN			   	21
+
+#define SDL_PIN   			22
+
+// ------------------------------------
 // Height and width of display
 // ------------------------------------
 
@@ -180,14 +238,6 @@
 #define COMP_BOOSTER_HIGH    36      
 //36 us 
 
-
-#define GEN_GPIO_AC_MOS1_H     14
-#define GEN_GPIO_AC_MOS2_H     12
-#define GEN_GPIO_BOOS_H  	   13
-#define GEN_GPIO_AC_MOS1_L     5
-#define GEN_GPIO_AC_MOS2_L     19
-#define GEN_GPIO_BOOS_L  	   18
-
 // ------------------------------------
 // MCPWM FOR DC BUCK BOOSTER SIGNAL
 // ------------------------------------
@@ -216,38 +266,9 @@
 #define COMP_MIN_DC3     40     
 //  4 us 
 
-
-#define GEN_GPIO_DC1P    33
-#define GEN_GPIO_DC1N    25
-
-#define GEN_GPIO_DC2P    26
-#define GEN_GPIO_DC2N    27
-
-#define GEN_GPIO_DC3P    1
-#define GEN_GPIO_DC3N    3
-
-
-
 // ------------------------------------
 //ADC1 Channels
 // ------------------------------------
-
-// 
-// GPIO 39
-#define ADC1_AC          ADC_CHANNEL_3
-
-// GPIO32
-#define ADC1_DC1          ADC_CHANNEL_4
-
-// GPIO33
-#define ADC1_DC2          ADC_CHANNEL_0
-
-// GPIO34
-#define ADC1_DC3          ADC_CHANNEL_6
-
-// GPIO 35
-#define ADC1_BAT          ADC_CHANNEL_7
-
 
 #define ADC_ATTEN           ADC_ATTEN_DB_12
 
@@ -313,8 +334,6 @@
 
 #define ESP_INTR_FLAG_DEFAULT 0
 
-#define GPIO_INPUT_BOOSTER 	13
-
 // MASK FOR SELECTION
 
 #define INPUT_BOOSTER_MASK (1ULL<<GPIO_INPUT_BOOSTER)
@@ -323,7 +342,6 @@
 #define GRADIENT_BOOST_hIGH 300
 #define GRADIENT_BOOST_MID 200
 #define GRADIENT_BOOST_LOW 100
-
 
 // ------------------------------------
 //GPIOS FOR KEYPAD 4x3 (what i have)
@@ -334,30 +352,14 @@
 // BE SURE THAT SPECIAL KEYS ARE ATTACHED TO THE THIRD COLUMN AND ROW
 // COLUMNS ARE DEFINED AS OUTPUT AND ROWS AS INPUT
 
-#define GPIO_KEYPADROW0 	17
-#define GPIO_KEYPADROW1 	16
-#define GPIO_KEYPADROW2 	4
-#define GPIO_KEYPADROW3 	2
-
-#define GPIO_KEYPADCOL0 	16
-#define GPIO_KEYPADCOL1 	15
-#define GPIO_KEYPADCOL2 	0
-
 #define INPUT_ROW_NUMBERS_MASK (1ULL<<GPIO_KEYPADROW0 | 1ULL<<GPIO_KEYPADROW1 | 1ULL<<GPIO_KEYPADROW2 | 1ULL<<GPIO_KEYPADROW3 )
 
 #define OUTPUT_COL_NUMBERS_MASK (1ULL<<GPIO_KEYPADCOL0 | 1ULL<<GPIO_KEYPADCOL1 | 1ULL<<GPIO_KEYPADCOL2)
-
-
 
 // ------------------------------------
 // IC2 CONFIG FOR CLOCK OR OTHER SENSORS LATER ON
 // ------------------------------------
 
-// GPIO 21
-#define SDA_PIN   21
-
-// GPIO 22
-#define SDL_PIN   22
 
 // frequency is to handle fast mode of RTC Clock DS3231 [CLOCK HAVE BATTERY AND IS INDEPENDENT, CHEAP]
 #define I2C_MASTER_FREQ_HZ 400000
