@@ -200,115 +200,136 @@ offsetL= abs(measured-nomAc);
 
 if (booster==0){ 
 
-if (measured > nomAc){
+	if (measured > nomAc){
 
-	if (measured > maxAc){
+		if (measured > maxAc){
 
-mcpwm_comparator_set_compare_value(comparatorsBoosters[0], MIN_COMP_H);
+			mcpwm_comparator_set_compare_value(comparatorsBoosters[0], MIN_COMP_H);
 
-}else if (newtickH>MIN_COMP_H){
+		}
+		else if (newtickH > MIN_COMP_H){
 
-newtickH -= 1;
-mcpwm_comparator_set_compare_value(comparatorsBoosters[0], newtickH);
+			newtickH -= 1;
+			mcpwm_comparator_set_compare_value(comparatorsBoosters[0], newtickH);
 
 
-} 
-}else if(measured < nomAc){
+		} 
+	}
+	else if(measured < nomAc){
 
-if (newtickH<MAX_COMP_H){
-newtickH += 1;
+		if (newtickH < MAX_COMP_H){
+			newtickH += 1;
 
-mcpwm_comparator_set_compare_value(comparatorsBoosters[0], newtickH);
+			mcpwm_comparator_set_compare_value(comparatorsBoosters[0], newtickH);
 
-}
+		}
 
-}
+	}
 }else if(booster==1){
 
-if (measured > nomAc){
+	if (measured > nomAc){
 
-	if (measured > maxAc){
+		if (measured > maxAc){
 
-mcpwm_comparator_set_compare_value(comparatorsBoosters[1], MIN_COMP_L);
+			mcpwm_comparator_set_compare_value(comparatorsBoosters[1], MIN_COMP_L);
 
-}else if (newtickL>MIN_COMP_L){
+		}
+		else if (newtickL>MIN_COMP_L){
 
-if (offsetL>GRADIENT_BOOST_hIGH){
-if(newtickL-5>MIN_COMP_L){
+			if (offsetL>GRADIENT_BOOST_hIGH){
+				if((newtickL-4)>MIN_COMP_L){
 
-newtickL -= 5;
+					newtickL -= 5;
 
-mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+					mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
 
-}
+				}
 
-else if(newtickL-2>MIN_COMP_L){
+				else if((newtickL-1)>MIN_COMP_L){
 
-newtickL -= 2;
+					newtickL -= 2;
 
-mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+					mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
 
-}
+				}
 
-}else if (offsetL>GRADIENT_BOOST_MID){
+				else if(newtickL>MIN_COMP_L){
 
-if(newtickL-2>MIN_COMP_L){
+					newtickL -= 1;
 
-newtickL -= 2;
+					mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
 
-mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
-
-}
-}else {
-
-newtickL -= 1;
-
-mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+				}
 
 
-}
-}
-}
+			}
+			else if (offsetL>GRADIENT_BOOST_MID){
 
-else if(measured < nomAc){
+				if((newtickL-1)>MIN_COMP_L){
 
-}else if (newtickL<MAX_COMP_L){
+					newtickL -= 2;
 
-if (offsetL>GRADIENT_BOOST_hIGH){
-if(newtickL+5<MAX_COMP_L){
+					mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
 
-newtickL += 5;
+				}
 
-mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+				else if (newtickL>MIN_COMP_L) {
 
-}
+					newtickL -= 1;
 
-else if(newtickL+2<MAX_COMP_L){
-
-newtickL += 2;
-
-mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
-
-}
-
-}else if (offsetL>GRADIENT_BOOST_MID){
-
-if(newtickL+2<MIN_COMP_L){
-
-newtickL += 2;
-
-mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
-
-}
-}else {
-
-newtickL += 1;
-
-mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+					mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
 
 
-}
-}
+				}
+			}
+	}
+	}
+	else if(measured < nomAc){
+
+		if (newtickL<MAX_COMP_L){
+
+			if (offsetL>GRADIENT_BOOST_hIGH){
+				if((newtickL+4)<MAX_COMP_L){
+
+					newtickL += 5;
+
+					mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+				}
+				else if((newtickL+1)<MAX_COMP_L){
+
+					newtickL += 2;
+
+					mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+				}
+				else if(newtickL<MAX_COMP_L){
+
+					newtickL += 1;
+
+					mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+				}
+			}
+			else if (offsetL>GRADIENT_BOOST_MID){
+
+				if((newtickL+1)<MAX_COMP_L){
+
+					newtickL += 2;
+
+					mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+				}
+				else if (newtickL<MAX_COMP_L) {
+
+					newtickL += 1;
+
+					mcpwm_comparator_set_compare_value(comparatorsBoosters[1], newtickL);
+
+				}
+			}
+		}
+	}
 }
 }
 }
@@ -332,14 +353,14 @@ void dc_pwm_changer_BOOSTER(volatile int *tick, int adc_dc_results_vin, int adc_
 
 if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_HIGH)) {
 
-if (*tick<(DC_MAX_D_BOOSTER -3)){
+if ((*tick+2)<DC_MAX_D_BOOSTER){
 
 *tick=*tick+3;
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }
-else if(*tick<(DC_MAX_D_BOOSTER-2)){
+else if((*tick+1)<DC_MAX_D_BOOSTER){
 
 *tick=*tick+2;
 
@@ -347,26 +368,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 
 }
-else if(*tick<(DC_MAX_D_BOOSTER-1)){
-
-*tick=*tick+2;
-
-mcpwm_comparator_set_compare_value(comparator, *tick);
-
-
-}
-
-}else if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_MID)) {
-
-if(*tick<(DC_MAX_D_BOOSTER-2)){
-
-*tick=*tick+2;
-
-mcpwm_comparator_set_compare_value(comparator, *tick);
-
-
-}
-else if(*tick<(DC_MAX_D_BOOSTER-1)){
+else if(*tick<DC_MAX_D_BOOSTER){
 
 *tick=*tick+1;
 
@@ -375,9 +377,28 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }
 
-}else if(((NON_DC_VOUT-adc_dc_results_vout)>100)) {
+}else if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_MID)) {
 
-if(*tick<(DC_MAX_D_BOOSTER-1)){
+if((*tick+1)<DC_MAX_D_BOOSTER){
+
+*tick=*tick+2;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+else if(*tick<DC_MAX_D_BOOSTER){
+
+*tick=*tick+1;
+
+mcpwm_comparator_set_compare_value(comparator, *tick);
+
+
+}
+
+}else if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_LOW)) {
+
+if(*tick<(DC_MAX_D_BOOSTER)){
 
 *tick=*tick+1;
 
@@ -388,21 +409,21 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 } 
 else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_HIGH)) {
 
-if (*tick<(DC_MIN_D_BOOSTER+3)){
+if ((*tick-2)>DC_MIN_D_BOOSTER){
 
 *tick=*tick-3;
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }
-else if(*tick<(DC_MIN_D_BOOSTER+2)){
+else if((*tick-1)>DC_MIN_D_BOOSTER){
 
 *tick=*tick-2;
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }
-else if(*tick<(DC_MIN_D_BOOSTER+1)){
+else if(*tick>DC_MIN_D_BOOSTER){
 
 *tick=*tick-1;
 
@@ -412,14 +433,14 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_MID)) {
 
-if(*tick<(DC_MIN_D_BOOSTER+2)){
+if((*tick-1)>DC_MIN_D_BOOSTER){
 
 *tick=*tick-2;
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }
-else if(*tick<(DC_MIN_D_BOOSTER+1)){
+else if(*tick>DC_MIN_D_BOOSTER){
 
 *tick=*tick-1;
 
@@ -429,7 +450,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_LOW)) {
 
-if(*tick<(DC_MAX_D_BOOSTER+1)){
+if(*tick>DC_MAX_D_BOOSTER){
 
 *tick=*tick-1;
 
@@ -446,14 +467,14 @@ void dc_pwm_changer_BUCK(volatile int *tick, int adc_dc_results_vin, int adc_dc_
 
 if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_HIGH)) {
 
-if (*tick<(DC_MAX_D_BUCK -3)){
+if ((*tick+2)<DC_MAX_D_BUCK){
 
 *tick=*tick+3;
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }
-else if(*tick<(DC_MAX_D_BUCK-2)){
+else if((*tick+1)<DC_MAX_D_BUCK){
 
 *tick=*tick+2;
 
@@ -461,9 +482,9 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 
 }
-else if(*tick<(DC_MAX_D_BUCK-1)){
+else if(*tick<DC_MAX_D_BUCK){
 
-*tick=*tick+2;
+*tick=*tick+1;
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
 
@@ -472,7 +493,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }else if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_MID)) {
 
-if(*tick<(DC_MAX_D_BUCK-2)){
+if((*tick+1)<DC_MAX_D_BUCK){
 
 *tick=*tick+2;
 
@@ -480,7 +501,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 
 }
-else if(*tick<(DC_MAX_D_BUCK-1)){
+else if(*tick<DC_MAX_D_BUCK){
 
 *tick=*tick+1;
 
@@ -491,7 +512,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }else if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_LOW)) {
 
-if(*tick<(DC_MAX_D_BUCK-1)){
+if(*tick<DC_MAX_D_BUCK){
 
 *tick=*tick+1;
 
@@ -501,16 +522,16 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 }
 
 } 
-else if(((NON_DC_VOUT-adc_dc_results_vout)<300)) {
+else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_HIGH)) {
 
-if (*tick<(DC_MIN_D_BUCK+3)){
+if ((*tick-2)>DC_MIN_D_BUCK){
 
 *tick=*tick-3;
 
 mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }
-else if(*tick<(DC_MIN_D_BUCK+2)){
+else if((*tick-1)>DC_MIN_D_BUCK){
 
 *tick=*tick-2;
 
@@ -518,7 +539,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 
 }
-else if(*tick<(DC_MIN_D_BUCK+1)){
+else if(*tick>DC_MIN_D_BUCK){
 
 *tick=*tick-1;
 
@@ -529,7 +550,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_MID)) {
 
-if(*tick<(DC_MIN_D_BUCK+2)){
+if((*tick-1)>DC_MIN_D_BUCK){
 
 *tick=*tick-2;
 
@@ -537,7 +558,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 
 }
-else if(*tick<(DC_MIN_D_BUCK+1)){
+else if(*tick>DC_MIN_D_BUCK){
 
 *tick=*tick-1;
 
@@ -548,7 +569,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 }else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_LOW)) {
 
-if(*tick<(DC_MAX_D_BUCK+1)){
+if(*tick>DC_MAX_D_BUCK){
 
 *tick=*tick-1;
 
@@ -562,9 +583,9 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 
 void dc_pwm_changer_BUCK_BOOST(volatile int *tick, int adc_dc_results_vin, int adc_dc_results_vout, int mask, mcpwm_cmpr_handle_t  comparator){
 
-if(((NON_DC_VOUT-adc_dc_results_vout)>100)) {
+if(((NON_DC_VOUT-adc_dc_results_vout)>GRADIENT_DC_LOW)) {
 
-if (*tick<(DC_MAX_D_BUCK_BOOST -1)){
+if (*tick<DC_MAX_D_BUCK_BOOST){
 
 *tick=*tick+1;
 
@@ -573,7 +594,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 }
 }else if(((NON_DC_VOUT-adc_dc_results_vout)<GRADIENT_DC_LOW)) {
 
-if (*tick<(DC_MIN_D_BUCK_BOOST +1)){
+if (*tick>DC_MIN_D_BUCK_BOOST){
 
 *tick=*tick-1;
 
@@ -582,6 +603,7 @@ mcpwm_comparator_set_compare_value(comparator, *tick);
 			}
  		}
 	}
+
 
 void dc_pwm_control(void *pvparameter ){
 

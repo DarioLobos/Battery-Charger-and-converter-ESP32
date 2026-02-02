@@ -72,8 +72,8 @@ if (booster==0){
      ESP_ERROR_CHECK(mcpwm_timer_enable(timers[1]));
      ESP_ERROR_CHECK(mcpwm_timer_start_stop(timers[1], MCPWM_TIMER_START_NO_STOP));
 
-	 mcpwm_generator_set_force_level(generatorsMosfets[1], 0, true);
-	 mcpwm_generator_set_force_level(generatorsMosfets[2], 0, true);
+	 mcpwm_generator_set_force_level(generatorsMosfets[1], 1, true);
+	 mcpwm_generator_set_force_level(generatorsMosfets[2], 1, true);
 
      ESP_ERROR_CHECK(mcpwm_timer_disable(timers[2]));
      ESP_ERROR_CHECK(mcpwm_timer_disable(timers[3]));
@@ -82,16 +82,16 @@ if (booster==0){
 }
 else {
 // SIGNAL 1 MEAN THAT SMALL BOOSTER IS USED
+	 mcpwm_generator_set_force_level(generatorsMosfets[0], -1, true);
 	 mcpwm_generator_set_force_level(generatorsMosfets[1], -1, true);
-	 mcpwm_generator_set_force_level(generatorsMosfets[2], -1, true);
 
      ESP_ERROR_CHECK(mcpwm_timer_enable(timers[2]));
      ESP_ERROR_CHECK(mcpwm_timer_start_stop(timers[2], MCPWM_TIMER_START_NO_STOP));
      ESP_ERROR_CHECK(mcpwm_timer_enable(timers[3]));
      ESP_ERROR_CHECK(mcpwm_timer_start_stop(timers[3], MCPWM_TIMER_START_NO_STOP));
 
-	 mcpwm_generator_set_force_level(generatorsMosfets[2], 0, true);
-	 mcpwm_generator_set_force_level(generatorsMosfets[3], 0, true);
+	 mcpwm_generator_set_force_level(generatorsMosfets[2], 1, true);
+	 mcpwm_generator_set_force_level(generatorsMosfets[3], 1, true);
 
      ESP_ERROR_CHECK(mcpwm_timer_disable(timers[0]));
      ESP_ERROR_CHECK(mcpwm_timer_disable(timers[1]));
@@ -118,8 +118,8 @@ if (booster==0){
      ESP_ERROR_CHECK(mcpwm_timer_enable(timers[1]));
      ESP_ERROR_CHECK(mcpwm_timer_start_stop(timers[1], MCPWM_TIMER_START_NO_STOP));
 
-	 mcpwm_generator_set_force_level(generatorsMosfets[1], 0, true);
-	 mcpwm_generator_set_force_level(generatorsMosfets[2], 0, true);
+	 mcpwm_generator_set_force_level(generatorsMosfets[1], 1, true);
+	 mcpwm_generator_set_force_level(generatorsMosfets[2], 1, true);
 
      ESP_ERROR_CHECK(mcpwm_timer_disable(timers[2]));
      ESP_ERROR_CHECK(mcpwm_timer_disable(timers[3]));
@@ -128,16 +128,16 @@ if (booster==0){
 }
 else {
 // SIGNAL 1 MEAN THAT SMALL BOOSTER IS USED
+	 mcpwm_generator_set_force_level(generatorsMosfets[0], -1, true);
 	 mcpwm_generator_set_force_level(generatorsMosfets[1], -1, true);
-	 mcpwm_generator_set_force_level(generatorsMosfets[2], -1, true);
 
      ESP_ERROR_CHECK(mcpwm_timer_enable(timers[2]));
      ESP_ERROR_CHECK(mcpwm_timer_start_stop(timers[2], MCPWM_TIMER_START_NO_STOP));
      ESP_ERROR_CHECK(mcpwm_timer_enable(timers[3]));
      ESP_ERROR_CHECK(mcpwm_timer_start_stop(timers[3], MCPWM_TIMER_START_NO_STOP));
 
-	 mcpwm_generator_set_force_level(generatorsMosfets[2], 0, true);
-	 mcpwm_generator_set_force_level(generatorsMosfets[3], 0, true);
+	 mcpwm_generator_set_force_level(generatorsMosfets[2], 1, true);
+	 mcpwm_generator_set_force_level(generatorsMosfets[3], 1, true);
 
      ESP_ERROR_CHECK(mcpwm_timer_disable(timers[0]));
      ESP_ERROR_CHECK(mcpwm_timer_disable(timers[1]));
