@@ -27,7 +27,6 @@
 #include "scheduleroffbackground.c"
 #include "font_numbers.c"
 #include "adc_functions.c"
-#include "ic2_commands_RTC_CLK.c"
 
 TaskHandle_t xtaskHandleDisplay= NULL;
 TaskHandle_t xtaskHandleFrame = NULL;
@@ -761,291 +760,10 @@ vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1000));
 
 
 
-void display_update_SET_TIME(void * pvparameters){
-
-int key=-1;
-
-int h1=-1;
-
-//time[0]=seconds time[1]=minutes time[0]=seconds
-
-uint8_t time[3];
-
-for (;;){
-
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERST, sizeof(array_of_commands_ISR_BANNERST), true);
-
-spi_transmit_isr(spi,false, setup_time_bkg_pointers[0][0], sizeof(setup_time_bkg_pointers), true);
-
-
-key=pressed_key();
-
-while ((key!=12)|(key!=1)|key!=2 ){
-
-key=pressed_key();
-
-}
-
-if(key==1){
-
-
-key=pressed_key();
-
-while ((key!=12)|(key>2)|key<0 ){
-
-key=pressed_key();
-
-}
-
-if(key==12){
-
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-taskYIELD();
-
-}
-
-else if((key>0)&(key<3)){
-
-time[2]= key<<1;
-
-
-	for (int j=0;j<8;j++){
-		
-		for(int i=0;i<8;i++){
-			if((font_bits[key][j]&(1<<i))>0){
-				timeH1_pointers_to_send[i][j]=TIMECOLOR;
-				}
-			else{
-				timeH1_pointers_to_send[i][j]=H1_time_pointers[i][j];
-
-				}
-		}
-	}
-
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
-
-spi_transmit_isr(spi,false, timeH1_pointers_to_send[0][0], sizeof(timeH1_pointers_to_send), true);
-
-h1=key;
-}
-else if (key==0){
-
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
-
-spi_transmit_isr(spi,false, H1_time_pointers[0][0], sizeof(H1_time_pointers), true);
-
-
-}
-
-
-key=pressed_key();
-
-while ((key!=12)|!(h1==2 & key<4) |((h1<2) & ((key==0) | (key>0))) ){
-
-key=pressed_key();
-
-}
-
-
-if(key==12){
-
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-taskYIELD();
-
-}
-
-time[2]= time[2] | key;
-
-	for (int j=0;j<8;j++){
-		
-		for(int i=0;i<8;i++){
-			if((font_bits[key][j]&(1<<i))>0){
-				timeH2_pointers_to_send[i][j]=TIMECOLOR;
-				}
-			else{
-				timeH2_pointers_to_send[i][j]=H2_time_pointers[i][j];
-
-				}
-		}
-
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeH2, sizeof(array_of_commands_ISR_timeH2), true);
-
-spi_transmit_isr(spi,false, timeH2_pointers_to_send[0][0], sizeof(timeH2_pointers_to_send), true);
-
-
-}
- 
-key=pressed_key();
-
-while ((key!=12)|(key>6) | (key<0)) {
-
-key=pressed_key();
-
-}
-
-
-if(key==12){
-
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-taskYIELD();
-
-}
-
-
-time[1]= key<<1;
-
-	for (int j=0;j<8;j++){
-		
-		for(int i=0;i<8;i++){
-			if((font_bits[key][j]&(1<<i))>0){
-				timeM1_pointers_to_send[i][j]=TIMECOLOR;
-				}
-			else{
-				timeM1_pointers_to_send[i][j]=M1_time_pointers[i][j];;
-
-				}
-		}
-	}
-
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeM1, sizeof(array_of_commands_ISR_timeM1), true);
-
-spi_transmit_isr(spi,false, timeM1_pointers_to_send[0][0], sizeof(timeM1_pointers_to_send), true);
-
-
-key=pressed_key();
-
-while ((key!=12)|(key>9) | (key<0)) {
-
-key=pressed_key();
-
-}
-
-
-if(key==12){
-
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-taskYIELD();
-
-}
-
-time[1]= time[1] | key;
-
-	for (int j=0;j<8;j++){
-		
-		for(int i=0;i<8;i++){
-			if((font_bits[key][j]&(1<<i))>0){
-				timeM2_pointers_to_send[i][j]=TIMECOLOR;
-				}
-			else{
-				timeM2_pointers_to_send[i][j]=M2_time_pointers[i][j];
-
-				}
-		}
-	}
-
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeM2, sizeof(array_of_commands_ISR_timeM2), true);
-
-spi_transmit_isr(spi,false, timeM2_pointers_to_send[0][0], sizeof(timeM2_pointers_to_send), true);
-
-
-key=pressed_key();
-
-while ((key!=12)|(key>6) | (key<0)) {
-
-key=pressed_key();
-
-}
-
-if(key==12){
-
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-taskYIELD();
-
-}
-
-time[0]= key<<1;
-
-
-	for (int j=0;j<8;j++){
-		
-		for(int i=0;i<8;i++){
-			if((font_bits[key][j]&(1<<i))>0){
-				timeS1_pointers_to_send[i][j]=TIMECOLOR;
-				}
-			else{
-				timeS1_pointers_to_send[i][j]=S1_time_pointers[i][j];
-
-				}
-		}
-	}
-
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeS1, sizeof(array_of_commands_ISR_timeS1), true);
-
-spi_transmit_isr(spi,false, timeS1_pointers_to_send[0][0], sizeof(timeS1_pointers_to_send), true);
-
-
-key=pressed_key();
-
-
-while ((key!=12)|(key>9) | (key<0)) {
-
-key=pressed_key();
-
-}
-
-
-if(key==12){
-
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-taskYIELD();
-
-}
-
-else if(key>0|key==0){
-
-time[0]= time[0] | key;
-
-	for (int j=0;j<8;j++){
-		
-		for(int i=0;i<8;i++){
-			if((font_bits[key][j]&(1<<i))>0){
-				timeS2_pointers_to_send[i][j]=TIMECOLOR;
-				}
-			else{
-				timeS2_pointers_to_send[i][j]=S2_time_pointers[i][j];
-
-				}
-		}
-	}
-
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeS2, sizeof(array_of_commands_ISR_timeS2), true);
-
-spi_transmit_isr(spi,false, timeS2_pointers_to_send[0][0], sizeof(timeS2_pointers_to_send), true);
-
-}
-
-ic2_setup_time(time[0], time[1], time[2]);
-
-}
-else if(key==2){
-
-// this is for set up a time for charge when battery have not enough charge from solar panel, wind generator
-// water wheel and need to be connected a transformer from the public electric energy line 
-}
-else{
-
-taskYIELD();
-
-}
-
-
-}
-
-}
 
 void display_update_SET_SCHEDULER_TIME2(void){
 
-int key=-1;
+int key;
 
 int h1=-1;
 
@@ -1076,28 +794,38 @@ spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeD1, sizeof(array_of_c
 spi_transmit_isr(spi,false, timeD1_pointers_to_send[0][0], sizeof(timeD1_pointers_to_send), true);
 
 
-key=pressed_key();
+key=-1;
 
 while ((key!=12)|(key!=1)|key!=2 ){
 
-key=pressed_key();
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
 
 }
 
 if(key==1){
 
-
-key=pressed_key();
+key=-1;
 
 while ((key!=12)|(key>2)|key<0 ){
 
-key=pressed_key();
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
 
 }
 
 if(key==12){
 
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
 
 }
@@ -1136,11 +864,16 @@ spi_transmit_isr(spi,false, H1_time_SCH_pointers[0][0], sizeof(H1_time_pointers)
 }
 
 
-key=pressed_key();
+key=-1;
 
 while ((key!=12)|!(h1==2 & key<4) |((h1<2) & ((key==0) | (key>0))) ){
 
-key=pressed_key();
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
 
 }
 
@@ -1148,6 +881,7 @@ key=pressed_key();
 if(key==12){
 
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
 
 }
@@ -1173,11 +907,16 @@ spi_transmit_isr(spi,false, timeH2_pointers_to_send[0][0], sizeof(timeH2_pointer
 
 }
  
-key=pressed_key();
+key=-1;
 
 while ((key!=12)|(key>6) | (key<0)) {
 
-key=pressed_key();
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
 
 }
 
@@ -1185,6 +924,7 @@ key=pressed_key();
 if(key==12){
 
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
 
 }
@@ -1210,11 +950,16 @@ spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeM1, sizeof(array_of_c
 spi_transmit_isr(spi,false, timeM1_pointers_to_send[0][0], sizeof(timeM1_pointers_to_send), true);
 
 
-key=pressed_key();
+key=-1;
 
 while ((key!=12)|(key>9) | (key<0)) {
 
-key=pressed_key();
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
 
 }
 
@@ -1222,6 +967,7 @@ key=pressed_key();
 if(key==12){
 
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
 
 }
@@ -1259,12 +1005,14 @@ vTaskDelay(pdMS_TO_TICKS(1000));
 
 
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
 
 }
 
 else{
 
+mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
 
 }
@@ -1272,9 +1020,9 @@ taskYIELD();
 
 
 
-void display_update_SET_SCHEDULER_TIME(void * pvparameters){
+void display_update_SET_SCHEDULER_TIME(void){
 
-int key=-1;
+int key;
 
 int h1=-1;
 
@@ -1288,17 +1036,24 @@ for(;;){
 spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
 spi_transmit_isr(spi,false, seton_time1_bkg_pointers[0][0], sizeof(seton_time1_bkg_pointers), true);
 
-key=pressed_key();
+
+key=-1;
 
 while ((key< 0)){
 
-key=pressed_key();
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
 
 }
 
 if(key==12){
 
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
 
 }
@@ -1335,29 +1090,38 @@ spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeD1, sizeof(array_of_c
 spi_transmit_isr(spi,false, timeD1_pointers_to_send[0][0], sizeof(timeD1_pointers_to_send), true);
 
 
-
-key=pressed_key();
+key=-1;
 
 while ((key!=12)|(key!=1)|(key!=2) ){
 
-key=pressed_key();
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
 
 }
 
 if(key==1){
 
-
-key=pressed_key();
+key=-1;
 
 while ((key!=12)|(key>2)|(key<0) ){
 
-key=pressed_key();
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
 
 }
 
 if(key==12){
 
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
 
 }
@@ -1395,12 +1159,16 @@ spi_transmit_isr(spi,false, H1_time_SCH_pointers[0][0], sizeof(H1_time_pointers)
 
 }
 
-
-key=pressed_key();
+key=-1;
 
 while ((key!=12)|!(h1==2 & key<4) |((h1<2) & ((key==0) | (key>0))) ){
 
-key=pressed_key();
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
 
 }
 
@@ -1408,6 +1176,7 @@ key=pressed_key();
 if(key==12){
 
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
 
 }
@@ -1432,12 +1201,16 @@ spi_transmit_isr(spi,false, timeH2_pointers_to_send[0][0], sizeof(timeH2_pointer
 
 
 }
+key=-1;
  
-key=pressed_key();
-
 while ((key!=12)|(key>6) | (key<0)) {
 
-key=pressed_key();
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
 
 }
 
@@ -1445,6 +1218,7 @@ key=pressed_key();
 if(key==12){
 
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
 
 }
@@ -1470,11 +1244,16 @@ spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeM1, sizeof(array_of_c
 spi_transmit_isr(spi,false, timeM1_pointers_to_send[0][0], sizeof(timeM1_pointers_to_send), true);
 
 
-key=pressed_key();
+key=-1;
 
 while ((key!=12)|(key>9) | (key<0)) {
 
-key=pressed_key();
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
 
 }
 
@@ -1482,6 +1261,7 @@ key=pressed_key();
 if(key==12){
 
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
 
 }
@@ -1514,6 +1294,8 @@ display_update_SET_SCHEDULER_TIME2();
 
 else{
 
+
+mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
 
 }
@@ -1535,6 +1317,328 @@ spi_transmit_isr(spi,false, set_time_pointers[0][0], sizeof(set_time_pointers), 
 
 }
 
+
+void display_update_SET_TIME(void * pvparameters){
+
+int key;
+
+int h1=-1;
+
+//time[0]=seconds time[1]=minutes time[0]=seconds
+
+uint8_t time[3];
+
+for (;;){
+
+key=pressed_key(MCPA0);
+if (key!=11){
+taskYIELD();
+
+}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERST, sizeof(array_of_commands_ISR_BANNERST), true);
+
+spi_transmit_isr(spi,false, setup_time_bkg_pointers[0][0], sizeof(setup_time_bkg_pointers), true);
+
+
+key=-1;
+
+while ((key!=12)|(key!=1)|key!=2 ){
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
+
+}
+
+if(key==1){
+
+key=-1;
+
+while ((key!=12)|(key>2)|key<0 ){
+
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
+
+}
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
+taskYIELD();
+
+}
+
+else if((key>0)&(key<3)){
+
+time[2]= key<<1;
+
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeH1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeH1_pointers_to_send[i][j]=H1_time_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
+
+spi_transmit_isr(spi,false, timeH1_pointers_to_send[0][0], sizeof(timeH1_pointers_to_send), true);
+
+h1=key;
+}
+else if (key==0){
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
+
+spi_transmit_isr(spi,false, H1_time_pointers[0][0], sizeof(H1_time_pointers), true);
+
+
+}
+
+key=-1;
+
+while ((key!=12)|!(h1==2 & key<4) |((h1<2) & ((key==0) | (key>0))) ){
+
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
+
+taskYIELD();
+
+}
+
+time[2]= time[2] | key;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeH2_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeH2_pointers_to_send[i][j]=H2_time_pointers[i][j];
+
+				}
+		}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeH2, sizeof(array_of_commands_ISR_timeH2), true);
+
+spi_transmit_isr(spi,false, timeH2_pointers_to_send[0][0], sizeof(timeH2_pointers_to_send), true);
+
+
+}
+
+key=-1; 
+
+while ((key!=12)|(key>6) | (key<0)) {
+
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
+taskYIELD();
+
+}
+
+
+time[1]= key<<1;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeM1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeM1_pointers_to_send[i][j]=M1_time_pointers[i][j];;
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeM1, sizeof(array_of_commands_ISR_timeM1), true);
+
+spi_transmit_isr(spi,false, timeM1_pointers_to_send[0][0], sizeof(timeM1_pointers_to_send), true);
+
+key=-1;
+
+while ((key!=12)|(key>9) | (key<0)) {
+
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
+taskYIELD();
+
+}
+
+time[1]= time[1] | key;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeM2_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeM2_pointers_to_send[i][j]=M2_time_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeM2, sizeof(array_of_commands_ISR_timeM2), true);
+
+spi_transmit_isr(spi,false, timeM2_pointers_to_send[0][0], sizeof(timeM2_pointers_to_send), true);
+
+key=-1;
+
+while ((key!=12)|(key>6) | (key<0)) {
+
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
+
+}
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
+taskYIELD();
+
+}
+
+time[0]= key<<1;
+
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeS1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeS1_pointers_to_send[i][j]=S1_time_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeS1, sizeof(array_of_commands_ISR_timeS1), true);
+
+spi_transmit_isr(spi,false, timeS1_pointers_to_send[0][0], sizeof(timeS1_pointers_to_send), true);
+
+key=-1;
+
+while ((key!=12)|(key>9) | (key<0)) {
+
+mcp23017_set_pins_PortA_high(MCPA0);
+key=pressed_key(MCPA0);
+mcp23017_set_pins_PortA_high(MCPA1);
+key=pressed_key(MCPA1);
+mcp23017_set_pins_PortA_high(MCPA2);
+key=pressed_key(MCPA2);
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
+taskYIELD();
+
+}
+
+else if(key>0|key==0){
+
+time[0]= time[0] | key;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeS2_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeS2_pointers_to_send[i][j]=S2_time_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeS2, sizeof(array_of_commands_ISR_timeS2), true);
+
+spi_transmit_isr(spi,false, timeS2_pointers_to_send[0][0], sizeof(timeS2_pointers_to_send), true);
+
+}
+
+ic2_setup_time(time[0], time[1], time[2]);
+
+}
+else if(key==2){
+
+display_update_SET_SCHEDULER_TIME();
+
+}
+else{
+mcp23017_set_pins_PortA_high(MCPA0);
+taskYIELD();
+
+}
+}
+}
+
+
 void special_key_call (void * pvparamenters){
 
 for(;;){
@@ -1550,7 +1654,7 @@ xTaskNotifyGive(xtaskHandleSetTime);
 }
 }
 
-static void device3_scheduler(void *pvparameters){
+static void devices_scheduler(void *pvparameters){
 
 for(;;){
 
@@ -1558,7 +1662,7 @@ for(;;){
 vTaskDelay(pdTICKS_TO_MS(60000));
 
 // THE SCHEDULER FLAG IS 1 AND MUST READ VOLTAGE AND CHECK THEN IF FLOW TURN OFF DEVICE 3
-if(*ptrflagAlarm1){
+if((*ptrflagAlarm1) & !(flag_photoresistor)){
 
 //TURN OFF CHARGER TO MEASURE BATTERY
 //suspend task pwm because gonna turn on again generators
@@ -1580,23 +1684,52 @@ mcpwm_generator_set_force_level(generators_DC_control[2][1] , 0, true);
 
 flag_device3out=1;
 
-for (int i=0;i<2;i++){
-
-mcpwm_generator_set_force_level(generators_DC_control[i][0] , -1, true);
+mcpwm_generator_set_force_level(generators_DC_control[0][0] , -1, true);
 
 vTaskResume(dc_pwm_control_task);
 
 alarm_reset();
 
 	}
-}
+
 else{
 
 flag_device3out=0;
 
-for (int i=0;i<3;i++){
+mcpwm_generator_set_force_level(generators_DC_control[0][0] , -1, true);
+mcpwm_generator_set_force_level(generators_DC_control[2][0] , -1, true);
 
-mcpwm_generator_set_force_level(generators_DC_control[i][0] , -1, true);
+
+vTaskResume(dc_pwm_control_task);
+
+alarm_reset();
+
+}
+
+}
+else if(*ptrflagAlarm1)
+{
+//TURN OFF CHARGER TO MEASURE BATTERY
+//suspend task pwm because gonna turn on again generators
+vTaskSuspend(dc_pwm_control_task);
+
+mcpwm_generator_set_force_level(generators_DC_control[0][0] , 1, true);
+mcpwm_generator_set_force_level(generators_DC_control[2][0] , 1, true);
+
+// WAIT DISCHARGE OF CAPACITOR PRIORITY IS HIGH SO WILL GET UNBLOCK AFTER TIME PASS
+vTaskDelay(pdTICKS_TO_MS(500));
+
+if(*adc_dc_voltage_pointers[3]<BATLOWCHARGE){
+
+mcpwm_generator_set_force_level(generators_DC_control[2][0] , 1, true);
+mcpwm_generator_set_force_level(generators_DC_control[2][1] , 0, true);
+
+
+flag_device3out=1;
+
+mcpwm_generator_set_force_level(generators_DC_control[0][0] , -1, true);
+mcpwm_generator_set_force_level(generators_DC_control[1][0] , -1, true);
+
 
 vTaskResume(dc_pwm_control_task);
 
@@ -1604,8 +1737,28 @@ alarm_reset();
 
 	}
 
+else{
+
+flag_device3out=0;
+
+mcpwm_generator_set_force_level(generators_DC_control[0][0] , -1, true);
+mcpwm_generator_set_force_level(generators_DC_control[1][0] , -1, true);
+mcpwm_generator_set_force_level(generators_DC_control[2][0] , -1, true);
+
+
+vTaskResume(dc_pwm_control_task);
+
+alarm_reset();
+
+
 
 }
+
+
+
+}else if(!(flag_photoresistor)){
+
+mcpwm_generator_set_force_level(generators_DC_control[1][0] , 1, true);
 
 }
 
@@ -1621,6 +1774,14 @@ flag_device3out=0;
 alarm_reset();
 
 	}
+
+if((flag_photoresistor)){
+
+mcpwm_generator_set_force_level(generators_DC_control[1][0] , -1, true);
+
+}
+
+
 
 
 }

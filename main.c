@@ -18,13 +18,22 @@ void app_main(void)
 
 	psi_setup();
 
-	adc_setup(); 
+	adc_setup();
 
 	timer_setup_AC();
 
 	timer_setup_DC();
 
 	gpio_booster_config ();
+
+	gpio_photoresistor_config ();
+	flag_photoresistor =  REG_READ(GPIO_IN_REG);
+
+
+	mcp23017_config();
+
+// THIS PUT BIT 0 OF PORTA MCP IN 1 FOR KEYPAD READ THE * KEY WITHOUT MAP AT UNTIL KEY IS PRESSED
+	mcp23017_set_pins_PortA_high(MCPA0);
 
   	//display_init in display_functions.c
     xTaskCreatePinnedToCore(display_init, "display_init", (COLARRAY*ROWARRAY*sizeof(uint16_t)+4096), NULL, TASK_PRIO_4, &xtaskHandleDisplay , CORE0);
@@ -47,7 +56,7 @@ void app_main(void)
 	xTaskCreatePinnedToCore(booster_selection, "booster_selectionl", 4096 ,NULL , TASK_PRIO_3, &booster_control_task, CORE1);
     
   	//device3_scheduler in display_functions.c
-	xTaskCreatePinnedToCore(device3_scheduler, "device3_scheduler", 4096 ,NULL , TASK_PRIO_3, &booster_control_task, CORE1);
+	xTaskCreatePinnedToCore(devices_scheduler, "device3_scheduler", 4096 ,NULL , TASK_PRIO_3, &booster_control_task, CORE1);
 
 	//dc_pwm_control in adc_function.c
 	xTaskCreatePinnedToCore(dc_pwm_control, "pwm_controlDC", 4096 ,NULL , TASK_PRIO_2, &dc_pwm_control_task, CORE0);

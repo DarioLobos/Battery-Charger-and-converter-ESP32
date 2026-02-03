@@ -711,10 +711,11 @@ device3out=3;
 
 for (int i=0;i<device3out;i++){
 
+if ((i!=1) & !(flag_photoresistor)){
 if((MAX_DC_VIN<*adc_dc_voltage_pointers[i]) | (MIN_DC_VIN>*adc_dc_voltage_pointers[i]) |
 (MAX_DC_VOUT<*adc_dc_voltage_pointers[3]) |(MIN_DC_VOUT>*adc_dc_voltage_pointers[3]) ){
 
-mcpwm_generator_set_force_level(generators_DC_control[i][0] , 1, true);
+mcpwm_generator_set_force_level(generators_DC_control[i][0] ,1, true);
 
 } 
 else {
@@ -756,6 +757,7 @@ dc_pwm_changer_BUCK(&newtickBUCK[i], *adc_dc_voltage_pointers[i], *adc_dc_voltag
 
 }
 
+}
 }
 
 }

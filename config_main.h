@@ -55,13 +55,22 @@
 // GPIO FOR KEYPAD
 
 #define GPIO_KEYPADROW0 	17
-#define GPIO_KEYPADROW1 	16   //////////////// must be added mcp23017 and revised keypad program
+#define GPIO_KEYPADROW1 	16   
 #define GPIO_KEYPADROW2 	4
 #define GPIO_KEYPADROW3 	2
 
-#define GPIO_KEYPADCOL0 	16    ///////////////
-#define GPIO_KEYPADCOL1 	15
-#define GPIO_KEYPADCOL2 	0
+#define GPIO_PHOTOSWITCH	15
+
+
+// GPIO FOR COLUMNS ARE IN MCP23017
+
+#define MCPA0	0   
+#define MCPA1	1   
+#define MCPA2	(1<<2)   
+
+#define GPIO_KEYPADCOL0 	MCPA0   
+#define GPIO_KEYPADCOL1 	MCPA1
+#define GPIO_KEYPADCOL2 	MCPA2
 
 // GPIO FOR IC2
 #define SDA_PIN			   	21
@@ -357,7 +366,7 @@
 #define OUTPUT_COL_NUMBERS_MASK (1ULL<<GPIO_KEYPADCOL0 | 1ULL<<GPIO_KEYPADCOL1 | 1ULL<<GPIO_KEYPADCOL2)
 
 // ------------------------------------
-// IC2 CONFIG FOR CLOCK OR OTHER SENSORS LATER ON
+// IC2 CONFIG FOR CLOCK, MCP23017 OR OTHER SENSORS LATER ON
 // ------------------------------------
 
 
@@ -385,7 +394,6 @@
 #define ADDRALARM2	0X0B
 
 #define ADDRALARMON	0X0E
-
 #define ADDRALARCHK	0X0F
 
 #define ADDRALARMONBITS	3
@@ -393,6 +401,13 @@
 #define ADDRALARM1IRQBITS	1
 #define ADDRALARM2IRQBITS	2
 
+// ADDRESS FOR MCP23017 THIS ADDRES IS GROUND A0,A1 AND A2
+// SEE MCP23017 FOR CHIP CONFIGURATION 
+
+ #define SLV_MCP23017	0X20
+
+
+// 
 // ------------------------------------
 // BATTERY CHARGE LEVEL FOR TURN OFF THE DEVICE3
 // ------------------------------------
@@ -405,3 +420,15 @@
 
 #define R1	56
 #define R2	10
+
+// ------------------------------------
+// GPIO FOR PHOTORESISTOR MODULE, 
+// MODULE HAVE AN OPERATIONAL AMPLIFIER 
+// AND PHOTENTIOMETER TO LATCH DIGITAL 1
+// ON CERTAIN LIGHT LEVEL ALSO CAN BE USED
+// OTHER PIN TO MEASURE LIGHT IF NECESARY 
+// USING ADC FOR NOW I WILL USE SWITCH
+// ------------------------------------
+
+# define INPUT_PHOTORESISTOR_MASK	( 1ULL << GPIO_PHOTOSWITCH)
+

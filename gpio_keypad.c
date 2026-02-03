@@ -11,7 +11,7 @@
 #include "hal/gpio_types.h"
 #include "soc/gpio_struct.h"
 #include "soc/gpio_reg.h" // Optional: for direct register definitions
-
+#include "ic2_commands_RTC_CLK.c"
 #include "portmacro.h"
 #include <stdint.h>
 
@@ -26,7 +26,7 @@ BaseType_t xHigherPriorityTaskWoken;
 xHigherPriorityTaskWoken= pdFALSE;
 
 
-xTaskNotifyFromISR(xtaskHandleSetTime,1,eSetValueWithoutOverwrite ,&xHigherPriorityTaskWoken);
+xTaskNotifyFromISR(xtaskHandleSetTime,GPIO_KEYPADROW0,eSetValueWithoutOverwrite ,&xHigherPriorityTaskWoken);
 
 portYIELD_FROM_ISR_ARG(xHigherPriorityTaskWoken);
 
@@ -39,7 +39,7 @@ BaseType_t xHigherPriorityTaskWoken;
 
 xHigherPriorityTaskWoken= pdFALSE;
 
-xTaskNotifyFromISR(xtaskHandleSetTime,2,eSetValueWithoutOverwrite ,&xHigherPriorityTaskWoken);
+xTaskNotifyFromISR(xtaskHandleSetTime,GPIO_KEYPADROW1,eSetValueWithoutOverwrite ,&xHigherPriorityTaskWoken);
 
 portYIELD_FROM_ISR_ARG(xHigherPriorityTaskWoken);
 
@@ -52,7 +52,7 @@ BaseType_t xHigherPriorityTaskWoken;
 
 xHigherPriorityTaskWoken= pdFALSE;
 
-xTaskNotifyFromISR(xtaskHandleSetTime,3,eSetValueWithoutOverwrite ,&xHigherPriorityTaskWoken);
+xTaskNotifyFromISR(xtaskHandleSetTime,GPIO_KEYPADROW2,eSetValueWithoutOverwrite ,&xHigherPriorityTaskWoken);
 
 portYIELD_FROM_ISR_ARG(xHigherPriorityTaskWoken);
 
@@ -65,7 +65,7 @@ BaseType_t xHigherPriorityTaskWoken;
 
 xHigherPriorityTaskWoken= pdFALSE;
 
-xTaskNotifyFromISR(xtaskHandleSetTime,4,eSetValueWithoutOverwrite ,&xHigherPriorityTaskWoken);
+xTaskNotifyFromISR(xtaskHandleSetTime,GPIO_KEYPADROW3,eSetValueWithoutOverwrite ,&xHigherPriorityTaskWoken);
 
 portYIELD_FROM_ISR_ARG(xHigherPriorityTaskWoken);
 
@@ -120,7 +120,7 @@ GPIO.out_w1ts= GPIO.out_w1ts | GPIO_KEYPADCOL0;
 
 }
 
-int  pressed_key (void ){
+int  pressed_key (uint8_t col){
 
 uint32_t row=-1;
 
@@ -129,107 +129,93 @@ uint8_t key=-1;
 
 xTaskNotifyWait(0, 0, &row, portMAX_DELAY);
 
+
 // KEYS 11 * ,12 # ARE SPECIAL KEYS
 
 
-uint32_t low_pins_status = REG_READ(GPIO_IN_REG);
+if(col==GPIO_KEYPADCOL0){
 
-if (row==1){
+		if(row==GPIO_KEYPADROW0){
 
-if (low_pins_status&(1<<GPIO_KEYPADROW0)){
+			key=1;
 
-key=1;
+		}
+		else if(row==GPIO_KEYPADROW1){
 
-}
+			key=4;
 
-if (low_pins_status&(1<<GPIO_KEYPADROW1)){
+		}
 
-key=4;
+		else if(row==GPIO_KEYPADROW2){
 
-}
+			key=7;
 
-if (low_pins_status&(1<<GPIO_KEYPADROW2)){
+		}
 
-key=7;
+		else if(row==GPIO_KEYPADROW3){
 
-}
+			key=11;
 
-if (low_pins_status&(1<<GPIO_KEYPADROW3)){
-
-key=11;
-
-}
-}else {
-
-taskYIELD();
-}
-
-if (col==2){
-
-if (low_pins_status&(1<<GPIO_KEYPADROW0)){
-
-key=2;
+		}
 
 }
 
-if (low_pins_status&(1<<GPIO_KEYPADROW1)){
+else if(col==GPIO_KEYPADCOL1){
 
-key=5;
 
+		if(row==GPIO_KEYPADROW0){
+
+			key=2;
+
+		}
+
+		else if(row==GPIO_KEYPADROW1){
+
+			key=5;
+
+		}
+
+		else if(row==GPIO_KEYPADROW2){
+
+			key=8;
+
+		}
+
+		else if(row==GPIO_KEYPADROW3){
+
+			key=0;
+
+		}
 }
-
-if (low_pins_status&(1<<GPIO_KEYPADROW2)){
-
-key=8;
-
-}
-
-if (low_pins_status&(1<<GPIO_KEYPADROW3)){
-
-key=0;
-
-}
-}else {
-
-taskYIELD();
-}
+else if(col==GPIO_KEYPADCOL2){
 
 
-if (col==3){
+		if(row==GPIO_KEYPADROW0){
 
-if (low_pins_status&(1<<GPIO_KEYPADROW0)){
+			key=2;
 
-key=3;
+		}
 
-}
+		else if(row==GPIO_KEYPADROW1){
 
-if (low_pins_status&(1<<GPIO_KEYPADROW1)){
+			key=5;
 
-key=6;
+		}
 
-}
+		else if(row==GPIO_KEYPADROW2){
 
-if (low_pins_status&(1<<GPIO_KEYPADROW2)){
+			key=8;
 
-key=9;
+		}
 
-}
+		else if(row==GPIO_KEYPADROW3){
 
-if (low_pins_status&(1<<GPIO_KEYPADROW3)){
+			key=0;
 
-key=12;
-
-}
-
-}else {
-
-taskYIELD();
+		}
 }
 
 return key;
 
 }
-
-
-
 

@@ -15,6 +15,7 @@
 #include "sdkconfig.h"
 #include "config_main.h"
 #include <stdint.h>
+#include "mcp23017.h"
 
 uint8_t *received_time[3];
 uint8_t *received_date[4];
@@ -263,3 +264,70 @@ static esp_err_t alarm_reset(){
 return ret;
  
 }
+
+
+// this change all values of port A one time
+static esp_err_t mcp23017_set_pins_PortA_high(uint8_t mask){
+
+
+    uint8_t data= mask ;
+    void *ptrdata=&data;
+	uint8_t address= (uint8_t) GPIOA;
+    uint8_t *ptraddress=&address;
+
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (SLV_MCP23017 << 1) | WRITE_BIT, true);
+    i2c_master_write(cmd, ptraddress, 1, true);
+    i2c_master_write(cmd, ptrdata, sizeof(data), true);
+	i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, portMAX_DELAY);
+
+return ret;
+
+}
+
+// this change all values of port B one time
+static esp_err_t mcp23017_set_pins_PortB_high(uint8_t mask){
+
+
+    uint8_t data= mask ;
+    void *ptrdata=&data;
+	uint8_t address= (uint8_t) GPIOB;
+    uint8_t *ptraddress=&address;
+
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (SLV_MCP23017 << 1) | WRITE_BIT, true);
+    i2c_master_write(cmd, ptraddress, 1, true);
+    i2c_master_write(cmd, ptrdata, sizeof(data), true);
+	i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, portMAX_DELAY);
+
+return ret;
+
+}
+
+static esp_err_t mcp23017_config(){
+
+
+    uint8_t data=(uint8_t) IOCONCONFIG ;
+    void *ptrdata=&data;
+	uint8_t address= (uint8_t) IOCON1;
+    uint8_t *ptraddress=&address;
+
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (SLV_MCP23017 << 1) | WRITE_BIT, true);
+    i2c_master_write(cmd, ptraddress, 1, true);
+    i2c_master_write(cmd, ptrdata, sizeof(data), true);
+	i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, portMAX_DELAY);
+
+
+return ret;
+
+}
+
+
+// later can be done more functions for MCP23017
