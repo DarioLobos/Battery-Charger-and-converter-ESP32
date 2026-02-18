@@ -1,0 +1,55 @@
+package com.example.dc_acconverterandcontrolremote
+import com.example.dc_acconverterandcontrolremote.R
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.dc_acconverterandcontrolremote.ui.theme.DC_ACConverterAndControlRemoteTheme
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items // For lists of items
+import androidx.compose.material3.*
+import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.ScrollableState
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import java.nio.file.WatchEvent
+import androidx.constraintlayout.compose.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.res.stringResource
+import androidx.activity.enableEdgeToEdge
+import androidx.collection.emptyLongSet
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.room.Room
+import androidx.compose.runtime.*
+
+@Composable
+fun ChargerScheduler_Screen(){
+
+}
