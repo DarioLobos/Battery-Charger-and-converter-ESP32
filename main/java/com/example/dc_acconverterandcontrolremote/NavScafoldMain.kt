@@ -35,7 +35,7 @@ enum class MenuList(
 
 
 @Composable
-fun MainApp(context: Context){
+fun MainApp(context: Context, viewModel: DeviceSchedulerViewModel){
     var currentDestination by rememberSaveable { mutableStateOf(MenuList.HOME)}
     val scope = rememberCoroutineScope()
 
@@ -63,7 +63,7 @@ fun MainApp(context: Context){
             MenuList.HOME -> MainScreen (context)
             MenuList.VOLTAGES -> Voltage_Screen()
             MenuList.CHARGERSCHEDULER -> ChargerScheduler_Screen()
-            MenuList.DEVICESSCHEDULER -> DeviceScheduler_Screen(context)
+            MenuList.DEVICESSCHEDULER ->  DataFromViewModel(viewModel)
             MenuList.SETTINGS -> Settings_Screen()
 
         }
