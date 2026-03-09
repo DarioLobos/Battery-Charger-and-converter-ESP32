@@ -52,4 +52,14 @@
     <string name="cancel">Dismiss</string>
     <string name="setTimeCancel">Setup time cancelled</string>
     <string name="setTimeRecorded">Setup time Recorded</string>
+    <string name="ipAddress">Ip Address =</string>
+    <string name="macAddress">Mac Address =</string>
+    <string name="numberdevices">Quantity of devices =</string>
+    <string name="required">Requided!</string>
+    <string name="more12">Must be less than 12 digits</string>
+    <string name="more3">Devices are limited to 100</string>
+    <string name="invalid">Invalid Input</string>
+    <string name="wifiReceived">received message</string>
+    <string name="checkConnection">Check connection</string>
+    <string name="matchFilter">WIFI match filter</string>
 </resources>

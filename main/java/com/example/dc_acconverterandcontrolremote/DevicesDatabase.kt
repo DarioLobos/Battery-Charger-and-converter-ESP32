@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.room.Room
 
 
-@Database(entities = arrayOf(Devices::class), version = 1, exportSchema = false)
+@Database(entities = arrayOf(Devices::class), version = 1, exportSchema = true)
 abstract class DevicesDatabase : RoomDatabase() {
 abstract fun daoDevices(): DaoDevices
 
