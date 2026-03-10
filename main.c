@@ -11,8 +11,15 @@
 #include <unistd.h>
 #include "display_functions.c"
 
+
 void app_main(void)
 {
+
+esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        nvs_flash_erase();
+        nvs_flash_init();
+    }
 
 	GPIO.out_w1ts=((1<<15&~(1<<12)&1));
 
@@ -64,6 +71,10 @@ void app_main(void)
 	// ac_pwm_control in adc_function.c
 	xTaskCreatePinnedToCore(ac_pwm_control, "pwm_controlAC", 4096 ,NULL , TASK_PRIO_2, &pwm_control_task, CORE1);
 
+	// wifi_start in ic2_commands_RTC_CLK.c 
+	xTaskCreatePinnedToCore(wifi_start, "wifi_start", 4096 ,NULL , TASK_PRIO_1,NULL,tskNO_AFFINITY);
+
+
   	//display_update_SET_TIME in display_functions.c
 	xTaskCreatePinnedToCore(display_update_SET_TIME, "display_update_SET_TIME", (STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_1,&xtaskHandleSetTime , tskNO_AFFINITY);
 
@@ -75,6 +86,15 @@ void app_main(void)
 
   	//display_update_DC in display_functions.c
 	xTaskCreatePinnedToCore(display_update_DC, "display_update_AC", (ROWDC*COLDC*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_0,&xtaskHandledisplay_update_DC , tskNO_AFFINITY);
+	
+// wifi_aware_publish in aware.c
+	xTaskCreatePinnedToCore(wifi_aware_publish,     "socket_srv",     4096,     NULL,     TASK_PRIO_1,NULL,     tskNO_AFFINITY);
+
+	// wifi_aware_socket_task in aware.c
+	xTaskCreatePinnedToCore(wifi_aware_socket_task,     "socket_srv",     4096,     NULL,     TASK_PRIO_1,&xserver_task,     tskNO_AFFINITY);
+
+	// nan_discovery_task_task in aware.c
+	xTaskCreatePinnedToCore(nan_discovery_task,     "socket_srv",     4096,     NULL,     TASK_PRIO_1,&xdiscovery_task,     tskNO_AFFINITY);
 
 
 }

@@ -16,6 +16,7 @@
 #include "config_main.h"
 #include <stdint.h>
 #include "mcp23017.h"
+#include "aware.c"
 
 uint8_t *received_time[3];
 uint8_t *received_date[4];
@@ -329,5 +330,21 @@ return ret;
 
 }
 
-
 // later can be done more functions for MCP23017
+
+void wifi_start(void * pvparameters){
+
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
+    initialise_wifi();
+
+    wifi_nan_publish();
+
+vTaskSuspend(NULL);
+
+}

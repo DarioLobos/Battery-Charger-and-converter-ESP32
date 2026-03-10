@@ -48,7 +48,6 @@ uint16_t *adc_dc_results_pointers[4];
 
 int *adc_dc_voltage_pointers[4]; 
 
-static const char *TAG = "error/message:";
 
 static volatile uint8_t flag_device3out=0;
 
