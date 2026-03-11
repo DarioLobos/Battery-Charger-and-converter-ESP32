@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include "display_functions.c"
+#include "aware.c"
 
 
 void app_main(void)

@@ -10,14 +10,63 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "socket.h" 
+#include "display_functions.c" 
 
 #ifndef ETH_ALEN
 #define ETH_ALEN 6
 #endif
 
-#ifndef NAN_STATUS_SUCCESS
-#define NAN_STATUS_SUCCESS 0
-#endif
+// this file can call any function of any file expept main.
+// rx_buffer[0] contain data type, rx_buffer[1] contain data lenght rx_buffer[len-1] end confirmation 0xff
+
+#define HANDSHAKE_OK 0XFF
+#define HANDSHAKE_FAILED 0X00
+
+//macro to identify received data for sheduler devices
+#define RECEIVED_SCHEDULER 1
+
+//macro to identify data for run control remote
+#define RECEIVED_C_REMOTE 3
+
+//macro to define data for setup time
+#define RECEIVED_TIME 7
+
+//macro to define data for schedule charger time
+#define RECEIVED_CHARGER_TIME 15
+
+//macro to identify request present esp32 configuration feed back
+#define RECEIVED_REPORT_REQ 35
+
+/*
+
+From nan_app.c :
+* NAN States 
+#define NAN_STARTED_BIT     BIT0
+#define NAN_STOPPED_BIT     BIT1
+
+ NAN Events 
+#define NDP_INDICATION      BIT2
+#define NDP_ACCEPTED        BIT3
+#define NDP_TERMINATED      BIT4
+#define NDP_REJECTED        BIT5
+
+ Macros
+#define MACADDR_LEN             6
+#define MACADDR_EQUAL(a1, a2)   (memcmp(a1, a2, MACADDR_LEN))
+#define MACADDR_COPY(dst, src)  (memcpy(dst, src, MACADDR_LEN))
+#define NAN_DW_INTVL_MS         524      NAN DW interval (512 TU's ~= 524 mSec) 
+#define NAN_NDP_RESP_TIMEOUT_DW 8
+#define NAN_NDP_RESP_TIMEOUT    NAN_NDP_RESP_TIMEOUT_DW*NAN_DW_INTVL_MS
+#define NAN_NDP_TERM_TIMEOUT    2*NAN_DW_INTVL_MS  NDP Termination Timeout - 2 DW
+
+From esp_nan.h:
+#define NDP_STATUS_ACCEPTED     1
+#define NDP_STATUS_REJECTED     2
+
+
+*/
+
+
 
 static int BUFFER_SIZE= 128;
 
@@ -101,7 +150,6 @@ static void nan_receive_event_handler(void *arg, esp_event_base_t event_base,
     xEventGroupSetBits(nan_event_group, NAN_RECEIVE);
 }
 
-
 static void nan_ndp_indication_event_handler(void *arg, esp_event_base_t event_base,
                                              int32_t event_id, void *event_data)
 {
@@ -122,7 +170,7 @@ static void nan_ndp_indication_event_handler(void *arg, esp_event_base_t event_b
 static void nan_ndp_confirm_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data) {
     wifi_event_ndp_confirm_t *evt = (wifi_event_ndp_confirm_t *)data;
     
-    if (evt->status == NAN_STATUS_SUCCESS) {
+    if (evt->status == NDP_STATUS_ACCEPTED) {
         ESP_LOGI(TAG, "NDP Data Link Confirmed. Notifying Socket Task...");
         if (xserver_task != NULL) {
             xTaskNotifyGive(xserver_task); // Unblocks the socket accept() loop
@@ -168,7 +216,7 @@ uint8_t wifi_nan_publish(void){
     memcpy(publish_cfg.matching_filter, CONFIG_ESP_WIFI_NAN_MATCHING_FILTER, 7);
     
     // npd response needed was included into this function and removed from config as shown esp_nan.h example looks like it is wrong
-    // esp_wifi_generic_types.h esp-idf-5.5,1 does not includes the .ndp_resp_needed 
+    // esp_wifi_types_generic.h esp-idf-5.5,1 does not includes the .ndp_resp_needed 
     
     pub_id = esp_wifi_nan_publish_service(&publish_cfg, true); 
     if (pub_id == 0) {
@@ -178,11 +226,11 @@ uint8_t wifi_nan_publish(void){
 }
 
 void nan_discovery_task(void *pvParameters) {
-    int pub_id;
+    uint32_t pub_id;
     
     xTaskNotifyWait(0,0,&pub_id,portMAX_DELAY);
     
-    wifi_nan_followup_params_t fup = { .inst_id = pub_id };
+    wifi_nan_followup_params_t fup = { .inst_id =(uint8_t) pub_id };
 
     for(;;) {
         // Wait for the signal from the handler
@@ -214,6 +262,27 @@ void initialise_wifi(void)
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM) );
 }
+
+void processScheduler(char *rx_buffer[2],int len){
+//pending
+}
+
+void runDevice(char *rx_buffer[2],int len){
+//pending
+}
+
+void setupTime(char *rx_buffer[2],int len){
+//pending
+}
+
+void chargerScheduler(char *rx_buffer[2],int len){
+//pending
+}
+
+void sendStatus(char *rx_buffer[2],int len){
+//pending
+}
+
 
 void wifi_aware_socket_task(void *pvParameters) {
 	
@@ -249,13 +318,46 @@ void wifi_aware_socket_task(void *pvParameters) {
                 // 2. Receive data from Android
                 int len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
                 if (len > 0) {
-                    rx_buffer[len] = 0;
                     ESP_LOGI(TAG, "From Android: %s", rx_buffer);
 
-                    // 3. Send response back
-                    const char *msg = "ESP32_ACK";
-                    send(sock, msg, strlen(msg), 0);
+                    // 3. Send response back hand shake ok with 0xff
+ 					if(rx_buffer[len]==(char) 0xff){                   
+                    	const char msg = (char) HANDSHAKE_OK;
+                    	send(sock, &msg, 1, 0);
+                    	
+                    	char * ptr_rx_buffer = &rx_buffer[2];
+                    	
+                    	switch(rx_buffer[0]){
+                    	
+                    		case RECEIVED_SCHEDULER:
+                    			processScheduler(&ptr_rx_buffer, len-3);
+                    			goto close;
+                    		
+                    		case RECEIVED_C_REMOTE:
+                    			runDevice(&ptr_rx_buffer, len-3);
+                    			goto close;
+                    	
+                    		case RECEIVED_TIME:
+                    			setupTime(&ptr_rx_buffer, len-3);
+                    			goto close;
+                    	
+                    		case RECEIVED_CHARGER_TIME:
+                    			chargerScheduler(&ptr_rx_buffer, len-3);
+                    			goto close;
+                    	
+                    		case RECEIVED_REPORT_REQ:
+                    			sendStatus(&ptr_rx_buffer, len-3);
+                    			goto close;
+                    	}
+                    
+                    }
+                    else{
+                    	const char msg = (char) HANDSHAKE_FAILED;// 00 means resend  
+                    	send(sock, &msg, 1, 0);
+                    	}
+                    
                 }
+                close:
                 close(sock);
             }
         }
@@ -264,11 +366,29 @@ void wifi_aware_socket_task(void *pvParameters) {
         ESP_LOGI(TAG, "Socket cycle finished. Waiting for next notification.");
     }
 }
+
 void wifi_aware_publish(void *pvParameters) {
+
 int pub_id;
 
-initialise_wifi();
-pub_id = wifi_nan_publish();
-xTaskNotify(xdiscovery_task, pub_id,eSetValueWithOverwrite);
-vTaskSuspend(NULL);
+// this task only runs ones to setup wifi and publish so no loop is needed
+
+	initialise_wifi();
+
+	vTaskDelay(pdMS_TO_TICKS(10));
+
+	pub_id = wifi_nan_publish();
+	
+	vTaskDelay(pdMS_TO_TICKS(10));
+	if (pub_id > 0) { 
+    	if (xdiscovery_task != NULL) {
+        	xTaskNotify(xdiscovery_task, pub_id, eSetValueWithOverwrite);
+    	} else {
+        ESP_LOGE("WIFI", "CRITICAL: Discovery Task handle is NULL!");
+    	}
+    	}else{ ESP_LOGE("WIFI", "NAN Publish failed to return a valid ID!");
+    }
+
+ vTaskDelete(NULL);
+
 }

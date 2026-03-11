@@ -16,7 +16,6 @@
 #include "config_main.h"
 #include <stdint.h>
 #include "mcp23017.h"
-#include "aware.c"
 
 uint8_t *received_time[3];
 uint8_t *received_date[4];

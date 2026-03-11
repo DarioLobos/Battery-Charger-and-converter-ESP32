@@ -1,4 +1,6 @@
-/*Configuration and Macros*/
+/*Configuration and Macros
+CONFIGURATION OF WIFI IN AWARE.C
+*/
 
 // TASK AND CORES
 #define TASK_PRIO_4         4
