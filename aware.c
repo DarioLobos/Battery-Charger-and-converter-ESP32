@@ -26,16 +26,22 @@
 #define RECEIVED_SCHEDULER 1
 
 //macro to identify data for run control remote
-#define RECEIVED_C_REMOTE 3
+#define RECEIVED_C_REMOTE 2
 
 //macro to define data for setup time
-#define RECEIVED_TIME 7
+#define RECEIVED_TIME 4
 
 //macro to define data for schedule charger time
-#define RECEIVED_CHARGER_TIME 15
+#define RECEIVED_CHARGER_TIME 8
 
 //macro to identify request present esp32 configuration feed back
-#define RECEIVED_REPORT_REQ 35
+#define RECEIVED_REPORT_REQ 16
+
+//macro to define new matchfilter
+#define RECEIVED_MATCH_FILTER 32
+
+//macro to define quantity of devices
+#define RECEIVED_QUANTITY_DEVICES 64
 
 /*
 
@@ -66,10 +72,9 @@ From esp_nan.h:
 
 */
 
-
-
 static int BUFFER_SIZE= 128;
 
+static int NUMBER_DEVICES= 8;
 
 static char CONFIG_ESP_WIFI_NAN_MATCHING_FILTER[7] ={'1','2','3','4','5','6','\n'};
 
@@ -134,6 +139,28 @@ void load_buffer_size_from_nvs() {
         ESP_LOGI(TAG, "NVS: RESTORED BUFFERSIZE");
     }
 }
+
+void save_number_devices_to_nvs() {
+    nvs_handle_t buffer;
+    if (nvs_open("storage", NVS_READWRITE, &buffer) == ESP_OK) {
+        nvs_set_i32(buffer, "number_devices", NUMBER_DEVICES); 
+        nvs_commit(buffer);
+        nvs_close(buffer);
+    }
+}
+
+void load_number_devices_from_nvs() {
+    nvs_handle_t buffer;
+    if (nvs_open("storage", NVS_READONLY, &buffer) == ESP_OK) {
+        size_t buffer_size = 4;
+        // If these fail, they keep the hardcoded default values
+        nvs_get_i32(buffer, "number_devices", &BUFFER_SIZE);
+        
+        nvs_close(buffer_size);
+        ESP_LOGI(TAG, "NVS: RESTORED BUFFERSIZE");
+    }
+}
+
 
 static void nan_receive_event_handler(void *arg, esp_event_base_t event_base,
                                       int32_t event_id, void *event_data){
@@ -263,24 +290,63 @@ void initialise_wifi(void)
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM) );
 }
 
-void processScheduler(char *rx_buffer[2],int len){
+void processScheduler(char *rx_buffer,int len){
 //pending
 }
 
-void runDevice(char *rx_buffer[2],int len){
+void runDevice(char *rx_buffer,int len){
+
+        // to make a definition (same as in Android program):
+        // the value for ON will be device_number x 2
+        // the value for OFF will be device_number x 2 + 1
+        // I set limit of devices in 100 and this will use 200 numbers
+		// with only 100 devices I can only use port B of MCP which is 
+		// connected to the emiter decoder of RF
+		// I will leave 40ms signal on and then turn off this is the minimun
+		// because can get blocked the task at this time but doesn't matter for stop use
+		// another code.
+		
+		// must be only one byte
+		if (len!=1){return;} 
+		
+		uint8_t bits =(uint8_t) *rx_buffer; 
+		
+		mcp23017_set_pins_PortB_high(bits);
+		sleep(40);
+		mcp23017_set_pins_PortB_high(0);
+		 
+}
+
+void setupTime(char *rx_buffer,int len){
 //pending
 }
 
-void setupTime(char *rx_buffer[2],int len){
+void chargerScheduler(char *rx_buffer,int len){
 //pending
 }
 
-void chargerScheduler(char *rx_buffer[2],int len){
+void sendStatus(char *rx_buffer,int len){
 //pending
 }
 
-void sendStatus(char *rx_buffer[2],int len){
-//pending
+void newMatchFilter(char *rx_buffer,int len){
+
+		// must be 7 bytes
+		if (len!=7){return;} 
+
+        memcpy(&CONFIG_ESP_WIFI_NAN_MATCHING_FILTER, &rx_buffer, 7);
+ 		save_settings_to_nvs();
+}
+
+void newQuantityDevices(char *rx_buffer,int len){
+
+		// must be 1 byte
+		if (len!=1){return;}
+		memcpy(&NUMBER_DEVICES, &rx_buffer, 1);
+		save_number_devices_to_nvs();
+		int buffer_size= *rx_buffer * 16 + 8;
+		memcpy(&BUFFER_SIZE, &buffer_size, 4);
+		save_buffer_size_to_nvs();
 }
 
 
@@ -347,6 +413,14 @@ void wifi_aware_socket_task(void *pvParameters) {
                     	
                     		case RECEIVED_REPORT_REQ:
                     			sendStatus(&ptr_rx_buffer, len-3);
+                    			goto close;
+
+                    		case RECEIVED_MATCH_FILTER:
+                    			newMatchFilter(&ptr_rx_buffer, len-3);
+                    			goto close;
+
+                    		case RECEIVED_QUANTITY_DEVICES:
+                    			newQuantityDevices(&ptr_rx_buffer, len-3);
                     			goto close;
                     	}
                     

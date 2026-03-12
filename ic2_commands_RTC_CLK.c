@@ -329,21 +329,45 @@ return ret;
 
 }
 
-// later can be done more functions for MCP23017
+static uint8_t mcp23017_get_pins_PortA_high(){
 
-void wifi_start(void * pvparameters){
 
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
+    volatile static uint8_t data;
+    void *ptrdata=&data;
+	uint8_t address= (uint8_t) GPIOA;
+    uint8_t *ptraddress=&address;
 
-    initialise_wifi();
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (SLV_MCP23017 << 1) | WRITE_BIT, true);
+    i2c_master_write(cmd, ptraddress, 1, true);
+    i2c_master_write_byte(cmd, (SLV_MCP23017 << 1) | READ_BIT, true);
+	i2c_master_read_byte(cmd, ptrdata, true);
+	i2c_master_stop(cmd);
+    i2c_master_cmd_begin(I2C_NUM_0, cmd, portMAX_DELAY);
 
-    wifi_nan_publish();
-
-vTaskSuspend(NULL);
+return data;
 
 }
+
+static uint8_t mcp23017_get_pins_portb_high(){
+
+
+    volatile static uint8_t data;
+    void *ptrdata=&data;
+	uint8_t address= (uint8_t) GPIOB;
+    uint8_t *ptraddress=&address;
+
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (SLV_MCP23017 << 1) | WRITE_BIT, true);
+    i2c_master_write(cmd, ptraddress, 1, true);
+    i2c_master_write_byte(cmd, (SLV_MCP23017 << 1) | READ_BIT, true);
+	i2c_master_read_byte(cmd, ptrdata, true);
+	i2c_master_stop(cmd);
+    i2c_master_cmd_begin(I2C_NUM_0, cmd, portMAX_DELAY);
+
+return data;
+
+}
+
