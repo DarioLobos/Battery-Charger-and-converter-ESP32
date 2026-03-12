@@ -10,7 +10,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "socket.h" 
-#include "display_functions.c" 
+#include "background.c" 
 
 #ifndef ETH_ALEN
 #define ETH_ALEN 6

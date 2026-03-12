@@ -8,7 +8,23 @@
 #include <stdint.h>
 #include "esp_heap_caps.h"
 #include "config_main.h"
+#include "setuptimebackground.c"
+#include "setontimebackground.c"
+#include "setontime1background.c"
+#include "setofftimebackground.c"
+#include "schedulerbackground.c"
+#include "scheduleroffbackground.c"
+#include "font_numbers.c"
+#include "adc_functions.c"
+#include "driver/spi_master.h"
+#include "display_commands.c"
+#include "portmacro.h" 
 
+TaskHandle_t xtaskHandleDisplay= NULL;
+TaskHandle_t xtaskHandleFrame = NULL;
+TaskHandle_t xtaskHandleReset_BKG_Time = NULL;
+TaskHandle_t xtaskHandledisplay_update_DC = NULL;
+spi_device_handle_t spi;
 
 
 static uint16_t* background_pointers[ROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
@@ -25,20 +41,14 @@ static volatile uint16_t* S1_time_pointers[STROWARRAY]; // Array of pointers (li
 static volatile uint16_t* D2_time_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
 static volatile uint16_t* S2_time_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
 
+static uint8_t array_of_commands_poll[11]={ NORON,COLMOD,PCOLMOD,DISPON,CASET,0,COLARRAY-1,RASET,0,ROWARRAY-1,RAMWR};
+static uint8_t * pointer_to_commands_poll=&array_of_commands_poll[0]; 
 
-void display_allocation(void){
 
-
-// Allocate memory for each row in PSRAM
-for (int i = 0; i < ROWARRAY; i++) {
-    background_pointers[i] = (uint16_t*)heap_caps_malloc(COLARRAY * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-    if (background_pointers[i] == NULL) {
-        printf("Failed to allocate row %d\n", i);
-        return;
-        }
-}
-
+void display_allocation(uint16_t background[COLARRAY][ROWARRAY]);
 // after transfer to EXT RAM clean this array SEE BELLOW 
+
+static void display_init(void *pvparameter){
 
 uint16_t background [COLARRAY][ROWARRAY]= {{0xe75d, 0xf7ff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
  0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xf7ff,
@@ -1480,6 +1490,74 @@ uint16_t background [COLARRAY][ROWARRAY]= {{0xe75d, 0xf7ff, 0xffff, 0xffff, 0xff
  0x7246, 0x7226, 0x82a7, 0x8b07, 0x82c8, 0x7aa7, 0x7287, 0x59c5, 0x51a4, 0x6a45, 0x82e7, 0x82e8, 0x8ae8, 0x82c7, 0x6a45, 0x59e4,
  0x51a4, 0x51a4, 0x72a7, 0x6a67, 0x4983, 0x5183, 0x61e4, 0x9348, 0xb40b, 0x9b69, 0x82a6, 0x9307, 0x7a65, 0x61c3, 0x5183, 0x7266
 }};
+
+display_allocation(background);
+
+setup_time_bkg_allocation();
+
+seton_time_bkg_allocation();
+
+setoff_time_bkg_allocation();
+
+scheduler_bkg_allocation();
+
+scheduleroff_bkg_allocation();
+
+xTaskNotifyGive(xtaskHandleFrame);
+
+
+spi_polling(spi, *pointer_to_commands_poll,sizeof(array_of_commands_poll), true);
+
+//spi_polling(spi, NORON,8, true);
+//spi_polling(spi, COLMOD,8, true);
+//spi_polling(spi, PCOLMOD,8, true);
+//spi_polling(spi, DISPON,8, true);
+//spi_polling(spi, CASET,8, true);
+//spi_polling(spi, 0,8, true);// ALL THE SCREEN
+//spi_polling(spi, COLARRAY-1, 8,true); // ALL THE SCREEN
+//spi_polling(spi, RASET,8, true);
+//spi_polling(spi, 0,8, true);// ALL THE SCREEN
+//spi_polling(spi, ROWARRAY-1,8, true);// ALL THE SCREEN
+//spi_polling(spi, RAMWR,8, true);// ALL THE SCREEN
+
+
+for (int i = 0; i < ROWARRAY; i++) {
+    // background_pointers[i] is the address of the start of the row
+    // Each pixel is 2 bytes (uint16_t), so length is COLARRAY * 2
+    spi_polling(spi , (uint8_t *) background_pointers[i], COLARRAY *16  , true); // true = Data mode (D/C high)
+}
+
+spi_device_polling_end(spi, portMAX_DELAY);
+
+// BACKGROUND READY AT FIRST
+
+// awaiting small frames are done
+
+ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
+
+// free memory and delete task awaiting next task finish
+
+for (int i =0; i < ROWARRAY; i++){
+free(background_pointers[i]);
+
+}
+  vTaskDelete(NULL);
+}
+
+
+void display_allocation(uint16_t background[COLARRAY][ROWARRAY]){
+
+
+// Allocate memory for each row in PSRAM
+for (int i = 0; i < ROWARRAY; i++) {
+    background_pointers[i] = (uint16_t*)heap_caps_malloc(COLARRAY * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (background_pointers[i] == NULL) {
+        printf("Failed to allocate row %d\n", i);
+        return;
+        }
+}
+
+
 
 for (int i = 0; i < ROWARRAY; i++) {
 

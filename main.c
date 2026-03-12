@@ -43,7 +43,7 @@ esp_err_t ret = nvs_flash_init();
 	mcp23017_set_pins_PortA_high(MCPA0);
 
   	//display_init in display_functions.c
-    xTaskCreatePinnedToCore(display_init, "display_init", (COLARRAY*ROWARRAY*sizeof(uint16_t)+4096), NULL, TASK_PRIO_4, &xtaskHandleDisplay , CORE0);
+    xTaskCreatePinnedToCore(display_init, "display_init", (2*(COLARRAY*ROWARRAY*sizeof(uint16_t))+4096), NULL, TASK_PRIO_4, &xtaskHandleDisplay , CORE0);
 
 	//display_frames in display_functions.c
     xTaskCreatePinnedToCore(display_frames, "display_frames",

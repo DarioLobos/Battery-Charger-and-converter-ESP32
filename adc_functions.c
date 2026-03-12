@@ -23,7 +23,7 @@
 #include "soc/soc_caps.h"
 #include <stdint.h>
 
-
+const char *TAG = "error/message:";
 static adc_oneshot_unit_handle_t adc_handle_one_shoot= NULL;
 static adc_cali_handle_t adc_cali_handle= NULL;
 

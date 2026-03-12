@@ -15,23 +15,8 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/spi_master.h"
-#include "display_commands.c"
-#include "portmacro.h"
 #include "background.c"
-#include "setuptimebackground.c"
-#include "setontimebackground.c"
-#include "setontime1background.c"
-#include "setofftimebackground.c"
-#include "schedulerbackground.c"
-#include "scheduleroffbackground.c"
-#include "font_numbers.c"
-#include "adc_functions.c"
 
-TaskHandle_t xtaskHandleDisplay= NULL;
-TaskHandle_t xtaskHandleFrame = NULL;
-TaskHandle_t xtaskHandleReset_BKG_Time = NULL;
-TaskHandle_t xtaskHandledisplay_update_DC = NULL;
 
 static volatile uint16_t* ac_pointers_to_send[ROWAC];
 
@@ -53,9 +38,6 @@ static volatile uint16_t* timeS1_pointers_to_send[ROWTIME];
 
 static volatile uint16_t* timeS2_pointers_to_send[ROWTIME];
 
-static uint8_t array_of_commands_poll[11]={ NORON,COLMOD,PCOLMOD,DISPON,CASET,0,COLARRAY-1,RASET,0,ROWARRAY-1,RAMWR};
-
-static uint8_t * pointer_to_commands_poll=&array_of_commands_poll[0]; 
 
 static uint8_t array_of_commands_ISR_timeH1[7]={CASET,H1TCASETL,H1TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
 
@@ -126,81 +108,6 @@ static uint8_t array_of_commands_ISR_BANNERSCH[7]={CASET,STCASETL,STCASETH,RASET
 
 static uint8_t * pointer_to_commands_isr_BANNERSCH=&array_of_commands_ISR_BANNERSCH[0];
 
-
-
-
-spi_device_handle_t spi;
-
-
-static void display_init(void *pvparameter){
-
-display_allocation();
-
-setup_time_bkg_allocation();
-
-seton_time_bkg_allocation();
-
-setoff_time_bkg_allocation();
-
-scheduler_bkg_allocation();
-
-scheduleroff_bkg_allocation();
-
-xTaskNotifyGive(xtaskHandleFrame);
-
-
-spi_polling(spi, *pointer_to_commands_poll,sizeof(array_of_commands_poll), true);
-
-//spi_polling(spi, NORON,8, true);
-//spi_polling(spi, COLMOD,8, true);
-//spi_polling(spi, PCOLMOD,8, true);
-//spi_polling(spi, DISPON,8, true);
-//spi_polling(spi, CASET,8, true);
-//spi_polling(spi, 0,8, true);// ALL THE SCREEN
-//spi_polling(spi, COLARRAY-1, 8,true); // ALL THE SCREEN
-//spi_polling(spi, RASET,8, true);
-//spi_polling(spi, 0,8, true);// ALL THE SCREEN
-//spi_polling(spi, ROWARRAY-1,8, true);// ALL THE SCREEN
-//spi_polling(spi, RAMWR,8, true);// ALL THE SCREEN
-
-
-spi_polling(spi, background_pointers[0][0],sizeof(background_pointers), true);// ALL THE SCREEN
-
-
-spi_device_polling_end(spi, portMAX_DELAY);
-
-// BACKGROUND READY AT FIRST
-
-// awaiting small frames are done
-
-ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
-
-// free memory and delete task awaiting next task finish
-
-free(background_pointers);
-
-  vTaskDelete(NULL);
-}
-
-static void display_frames(void *pvparameter){
-
-
-ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
-
-// allocation of frames that change in background, then to use it a bipmap of font change color when bitmap is 1 
-
-frame_AC();
-frame_DC();
-frame_set_time();
-frame_digits_time();
-frame_digits_time_SCH();
-
-
-xTaskNotifyGive(xtaskHandleDisplay);
-
-  vTaskDelete(NULL);
-
-}
 
 static void psi_setup(){
 	const char *TAG = "error/message:";

@@ -14,14 +14,17 @@
 
 // polling 8 bits for command and parameters 
 
-void spi_polling(spi_device_handle_t spi, const uint8_t data,const int lenght,  bool keep_cs_active)
+void spi_polling(spi_device_handle_t spi, const uint8_t * data,const int lenght,  bool keep_cs_active)
 {
+
+// LENGTH TRANSMITED IS IN BITS 
+
     esp_err_t ret;
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));       //Zero out the transaction
     t.length = lenght;                   
-    t.tx_buffer = &data;             //The data is the command and next polling parameter,s
-    t.user = (void*)0;              //D/C needs to be set to 0
+    t.tx_buffer = data;             //The data is the command and next polling parameter,s
+    t.user = (void*)1;              //D/C needs to be set to 0
     if (keep_cs_active) {
         t.flags = SPI_TRANS_CS_KEEP_ACTIVE;   //Keep CS active after data transfer
     }
