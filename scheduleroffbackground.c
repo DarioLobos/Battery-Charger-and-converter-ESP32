@@ -9,23 +9,20 @@
 #include <stdint.h>
 #include "esp_heap_caps.h"
 #include "config_main.h"
+#include "freertos/idf_additions.h"
+#include "freertos/projdefs.h"
+#include "portmacro.h"
 
 
 
 uint16_t* scheduleroff_bkg_pointers[STROWARRAY]; // Array of pointers (likely in DRAM/IRAM)
 
 
-void scheduleroff_bkg_allocation(void){
+void scheduleroff_bkg_allocation(int16_t background[STCOLARRAY][STROWARRAY]);
 
+static void schedulerOffBackground(void *pvparameters){
 
-// Allocate memory for each row in PSRAM
-for (int i = 0; i < STROWARRAY; i++) {
-    scheduleroff_bkg_pointers[i] = (uint16_t*)heap_caps_malloc(STCOLARRAY * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-    if (scheduleroff_bkg_pointers[i] == NULL) {
-        printf("Failed to allocate row %d\n", i);
-        return;
-        }
-}
+ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
 // after transfer to EXT RAM clean this array SEE BELLOW 
 
@@ -629,9 +626,22 @@ uint16_t background [STROWARRAY][STCOLARRAY]=
  0x3ae2, 0x32a1, 0x2a81, 0x2240, 0x19e0, 0x19a0, 0x21a1, 0x2a02, 0x3222, 0x2a02, 0x1980, 0x1980, 0x19a0, 0x19c0, 0x19e0, 0x2220,
  0x32c1, 0x3b21, 0x3b40, 0x3320, 0x3300, 0x3300, 0x3300, 0x3320, 0x3b40, 0x3300, 0x2a41, 0x1981, 0x10e0, 0x08c0, 0x08a0, 0x08c0,
  0x0900, 0x1120, 0x1960, 0x21e1, 0x3282, 0x4302, 0x3282, 0x21a1, 0x1960, 0x1180, 0x19e0, 0x2a60, 0x2a81, 0x2aa0, 0x2ac0, 0x2ae0
-}}
+}};
 
-;
+scheduleroff_bkg_allocation(background);
+
+}
+
+void scheduleroff_bkg_allocation(int16_t background[STCOLARRAY][STROWARRAY]){
+
+// Allocate memory for each row in PSRAM
+for (int i = 0; i < STROWARRAY; i++) {
+    scheduleroff_bkg_pointers[i] = (uint16_t*)heap_caps_malloc(STCOLARRAY * sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (scheduleroff_bkg_pointers[i] == NULL) {
+        printf("Failed to allocate row %d\n", i);
+        return;
+        }
+}
 
 
 for (int i = 0; i < STROWARRAY; i++) {
@@ -639,7 +649,6 @@ for (int i = 0; i < STROWARRAY; i++) {
 	for (int j = 0; j < STCOLARRAY; j++) {
 
 scheduleroff_bkg_pointers[i][j] = background [i][j];
-background [i][j]=0;
 }
 }
 }

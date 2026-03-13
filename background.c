@@ -21,7 +21,6 @@
 #include "portmacro.h" 
 
 TaskHandle_t xtaskHandleDisplay= NULL;
-TaskHandle_t xtaskHandleFrame = NULL;
 TaskHandle_t xtaskHandleReset_BKG_Time = NULL;
 TaskHandle_t xtaskHandledisplay_update_DC = NULL;
 spi_device_handle_t spi;
@@ -47,6 +46,14 @@ static uint8_t * pointer_to_commands_poll=&array_of_commands_poll[0];
 
 void display_allocation(uint16_t background[COLARRAY][ROWARRAY]);
 // after transfer to EXT RAM clean this array SEE BELLOW 
+
+void frame_AC(void);
+
+void frame_DC(void);
+
+void frame_set_time(void);
+
+void frame_digits_time(void);
 
 static void display_init(void *pvparameter){
 
@@ -1493,33 +1500,22 @@ uint16_t background [COLARRAY][ROWARRAY]= {{0xe75d, 0xf7ff, 0xffff, 0xffff, 0xff
 
 display_allocation(background);
 
+frame_AC();
+
+frame_DC();
+
+frame_set_time();
+
+frame_digits_time();
+
 setup_time_bkg_allocation();
 
 seton_time_bkg_allocation();
 
 setoff_time_bkg_allocation();
 
-scheduler_bkg_allocation();
 
-scheduleroff_bkg_allocation();
-
-xTaskNotifyGive(xtaskHandleFrame);
-
-
-spi_polling(spi, *pointer_to_commands_poll,sizeof(array_of_commands_poll), true);
-
-//spi_polling(spi, NORON,8, true);
-//spi_polling(spi, COLMOD,8, true);
-//spi_polling(spi, PCOLMOD,8, true);
-//spi_polling(spi, DISPON,8, true);
-//spi_polling(spi, CASET,8, true);
-//spi_polling(spi, 0,8, true);// ALL THE SCREEN
-//spi_polling(spi, COLARRAY-1, 8,true); // ALL THE SCREEN
-//spi_polling(spi, RASET,8, true);
-//spi_polling(spi, 0,8, true);// ALL THE SCREEN
-//spi_polling(spi, ROWARRAY-1,8, true);// ALL THE SCREEN
-//spi_polling(spi, RAMWR,8, true);// ALL THE SCREEN
-
+spi_polling(spi, pointer_to_commands_poll,sizeof(array_of_commands_poll), true);
 
 for (int i = 0; i < ROWARRAY; i++) {
     // background_pointers[i] is the address of the start of the row
@@ -1530,10 +1526,6 @@ for (int i = 0; i < ROWARRAY; i++) {
 spi_device_polling_end(spi, portMAX_DELAY);
 
 // BACKGROUND READY AT FIRST
-
-// awaiting small frames are done
-
-ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
 
 // free memory and delete task awaiting next task finish
 
@@ -1564,7 +1556,6 @@ for (int i = 0; i < ROWARRAY; i++) {
 	for (int j = 0; j < COLARRAY; j++) {
 
 background_pointers[i][j] = background [i][j];
-background [i][j]=0;
 }
 }
 }

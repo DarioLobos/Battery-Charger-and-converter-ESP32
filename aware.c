@@ -10,7 +10,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "socket.h" 
-#include "background.c" 
+#include "display_functions.c" 
 
 #ifndef ETH_ALEN
 #define ETH_ALEN 6
@@ -82,7 +82,6 @@ static char MAC_REMOTE[ETH_ALEN];
  
 static EventGroupHandle_t nan_event_group;
 
-static const char *TAG = "publisher";
 
 static int NAN_RECEIVE = BIT0;
 

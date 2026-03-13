@@ -248,10 +248,13 @@ digits++;
 				}
 		}
 	}
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_ac, sizeof(array_of_commands_ISR_AC), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_ac, sizeof(array_of_commands_ISR_AC), true);
 
-spi_transmit_isr(spi,false, ac_pointers_to_send[0][0], sizeof(ac_pointers_to_send), true);
- 
+
+for(int i =0; i<8;i++){
+spi_transmit_isr(spi,false, (uint8_t*) ac_pointers_to_send[i], (ACCASETH-ACCASETL)*16, true);
+ }
+
 xTaskNotifyGive(xtaskHandledisplay_update_DC);
 
 }
@@ -366,10 +369,12 @@ digits++;
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_ac, sizeof(array_of_commands_ISR_AC), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_dc, sizeof(array_of_commands_ISR_AC), true);
 
-spi_transmit_isr(spi,false, ac_pointers_to_send[0][0], sizeof(ac_pointers_to_send), true);
- 
+
+for (int i=0; i<8;i++){
+spi_transmit_isr(spi,false, (uint8_t*)dc_pointers_to_send[i], (DCCASETH-DCCASETL)*16, true);
+ }
 
 }
 }
@@ -474,10 +479,11 @@ for (int i = 0; i < ROWTIME; i++) {
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeD1, sizeof(array_of_commands_ISR_timeD1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeD1, sizeof(array_of_commands_ISR_timeD1), true);
 
-spi_transmit_isr(spi,false, timeD1_pointers_to_send[0][0], sizeof(timeD1_pointers_to_send), true);
-
+for (int i =0; i<8; i++){
+spi_transmit_isr(spi,false, (uint8_t*) timeD1_pointers_to_send[i], D1TCASETH*D1TCASETL+16, true);
+}
 
 	for (int j=0;j<8;j++){
 		
@@ -492,9 +498,11 @@ spi_transmit_isr(spi,false, timeD1_pointers_to_send[0][0], sizeof(timeD1_pointer
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeD2, sizeof(array_of_commands_ISR_timeD2), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeD2, sizeof(array_of_commands_ISR_timeD2), true);
 
-spi_transmit_isr(spi,false, timeD2_pointers_to_send[0][0], sizeof(timeD2_pointers_to_send), true);
+for (int i =0; i<8; i++){
+spi_transmit_isr(spi,false, (uint8_t*) timeD2_pointers_to_send[i], D2TCASETH*D2TCASETL+16, true);
+}
 
 
 
@@ -524,9 +532,11 @@ if ((received_digit>0) & (prev_H1!= received_digit)){
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
 
-spi_transmit_isr(spi,false, timeH1_pointers_to_send[0][0], sizeof(timeH1_pointers_to_send), true);
+for (int i =0; i<8; i++){
+spi_transmit_isr(spi,false, (uint8_t*) timeH1_pointers_to_send[i], H1TCASETH*H1TCASETL+16, true);
+}
 
 prev_H1 = received_digit;
 
@@ -549,9 +559,11 @@ if (prev_H2!= received_digit){
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeH2, sizeof(array_of_commands_ISR_timeH2), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeH2, sizeof(array_of_commands_ISR_timeH2), true);
 
-spi_transmit_isr(spi,false, timeH2_pointers_to_send[0][0], sizeof(timeH2_pointers_to_send), true);
+for (int i =0; i<8; i++){
+spi_transmit_isr(spi,false, (uint8_t*) timeH2_pointers_to_send[i], H2TCASETH*H2TCASETL+16, true);
+}
 
 prev_H2 = received_digit;
 
@@ -576,9 +588,11 @@ if (prev_M1!= received_digit){
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeM1, sizeof(array_of_commands_ISR_timeM1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeM1, sizeof(array_of_commands_ISR_timeM1), true);
 
-spi_transmit_isr(spi,false, timeM1_pointers_to_send[0][0], sizeof(timeM1_pointers_to_send), true);
+for (int i =0; i<8; i++){
+spi_transmit_isr(spi,false, (uint8_t*) timeM1_pointers_to_send[i], M1TCASETH*M1TCASETL+16, true);
+}
 
 prev_M1 = received_digit;
 
@@ -601,9 +615,11 @@ if (prev_M2!= received_digit){
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeM2, sizeof(array_of_commands_ISR_timeM2), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeM2, sizeof(array_of_commands_ISR_timeM2), true);
 
-spi_transmit_isr(spi,false, timeM2_pointers_to_send[0][0], sizeof(timeM2_pointers_to_send), true);
+for (int i =0; i<8; i++){
+spi_transmit_isr(spi,false, (uint8_t*) timeM2_pointers_to_send[i], M2TCASETH*M2TCASETL+16, true);
+}
 
 prev_M2 = received_digit;
 
@@ -627,9 +643,11 @@ if (prev_S1!= received_digit){
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeS1, sizeof(array_of_commands_ISR_timeS1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeS1, sizeof(array_of_commands_ISR_timeS1), true);
 
-spi_transmit_isr(spi,false, timeS1_pointers_to_send[0][0], sizeof(timeS1_pointers_to_send), true);
+for (int i =0; i<8; i++){
+spi_transmit_isr(spi,false, (uint8_t*) timeS1_pointers_to_send[i], S1TCASETH*S1TCASETL+16, true);
+}
 
 prev_S1 = received_digit;
 
@@ -652,9 +670,11 @@ if (prev_S2!= received_digit){
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeS2, sizeof(array_of_commands_ISR_timeS2), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeS2, sizeof(array_of_commands_ISR_timeS2), true);
 
-spi_transmit_isr(spi,false, timeS2_pointers_to_send[0][0], sizeof(timeS2_pointers_to_send), true);
+for (int i =0; i<8; i++){
+spi_transmit_isr(spi,false, (uint8_t*) timeS2_pointers_to_send[i], S2TCASETH*S2TCASETL+16, true);
+}
 
 prev_M2 = received_digit;
 
@@ -680,8 +700,12 @@ uint8_t time[2];
 
 
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
-spi_transmit_isr(spi,false, setoff_time_bkg_pointers[0][0], sizeof(setoff_time_bkg_pointers), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
+
+
+for (int i=0; i < (STRASETH-STRASETL); i++){
+spi_transmit_isr(spi,false, (uint8_t*) setoff_time_bkg_pointers[i],(STCASETH-STCASETL)*16 , true);
+}
 
 	for (int j=0;j<8;j++){
 		
@@ -696,10 +720,12 @@ spi_transmit_isr(spi,false, setoff_time_bkg_pointers[0][0], sizeof(setoff_time_b
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeD1, sizeof(array_of_commands_ISR_SCH_timeD1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeD1, sizeof(array_of_commands_ISR_SCH_timeD1), true);
 
-spi_transmit_isr(spi,false, timeD1_pointers_to_send[0][0], sizeof(timeD1_pointers_to_send), true);
 
+for(int i=0; i<(SCHD1TCASETH-SCHD1TCASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeD1_pointers_to_send[i], (SCHTIMERASETH-SCHTIMERASETL)*16, true);
+}
 
 key=-1;
 
@@ -755,18 +781,22 @@ time[1]= key<<1;
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
 
-spi_transmit_isr(spi,false, timeH1_pointers_to_send[0][0], sizeof(timeH1_pointers_to_send), true);
+for(int i=0; i<(SCHD1TCASETH-SCHD1TCASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeH1_pointers_to_send[i], (SCHTIMERASETH-SCHTIMERASETL)*16, true);
+}
+
 
 h1=key;
 }
 else if (key==0){
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
 
-spi_transmit_isr(spi,false, H1_time_SCH_pointers[0][0], sizeof(H1_time_pointers), true);
-
+for(int i=0; i<(SCHD1TCASETH-SCHD1TCASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) H1_time_SCH_pointers[i], (SCHTIMERASETH-SCHTIMERASETL)*16, true);
+}
 
 }
 
@@ -807,9 +837,11 @@ time[1]= time[1] | key;
 				}
 		}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH2, sizeof(array_of_commands_ISR_SCH_timeH2), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH2, sizeof(array_of_commands_ISR_SCH_timeH2), true);
 
-spi_transmit_isr(spi,false, timeH2_pointers_to_send[0][0], sizeof(timeH2_pointers_to_send), true);
+for(int i=0; i<(SCHD1TCASETH-SCHD1TCASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeH2_pointers_to_send[i], (SCHTIMERASETH-SCHTIMERASETL)*16, true);
+}
 
 
 }
@@ -852,10 +884,11 @@ time[0]= key<<1;
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeM1, sizeof(array_of_commands_ISR_SCH_timeM1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeM1, sizeof(array_of_commands_ISR_SCH_timeM1), true);
 
-spi_transmit_isr(spi,false, timeM1_pointers_to_send[0][0], sizeof(timeM1_pointers_to_send), true);
-
+for(int i=0; i<(SCHD1TCASETH-SCHD1TCASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeM1_pointers_to_send[i], (SCHTIMERASETH-SCHTIMERASETL)*16, true);
+}
 
 key=-1;
 
@@ -894,9 +927,11 @@ time[0]= time[1] | key;
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeM2, sizeof(array_of_commands_ISR_SCH_timeM2), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeM2, sizeof(array_of_commands_ISR_SCH_timeM2), true);
 
-spi_transmit_isr(spi,false, timeM2_pointers_to_send[0][0], sizeof(timeM2_pointers_to_send), true);
+for(int i=0; i<(SCHD1TCASETH-SCHD1TCASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeM2_pointers_to_send[i], (SCHTIMERASETH-SCHTIMERASETL)*16, true);
+}
 
 ic2_setup_alarm2(time[0], time[1]);
 
@@ -905,8 +940,12 @@ alarm_ON();
 
 vTaskDelay(pdMS_TO_TICKS(500));
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
-spi_transmit_isr(spi,false, scheduler_bkg_pointers[0][0], sizeof(scheduler_bkg_pointers), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
+
+for (int i=0; i < (STRASETH-STRASETL); i++){
+spi_transmit_isr(spi,false, (uint8_t*) scheduler_bkg_pointers[i],(STCASETH-STCASETL)*16 , true);
+}
+
 
 vTaskDelay(pdMS_TO_TICKS(1000));
 
@@ -940,9 +979,10 @@ uint8_t time[2];
 for(;;){
 
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
-spi_transmit_isr(spi,false, seton_time1_bkg_pointers[0][0], sizeof(seton_time1_bkg_pointers), true);
-
+spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
+for (int i=0; i < (STRASETH-STRASETL); i++){
+spi_transmit_isr(spi,false, (uint8_t*) seton_time1_bkg_pointers[i],(STCASETH-STCASETL)*16 , true);
+}
 
 key=-1;
 
@@ -968,8 +1008,12 @@ taskYIELD();
 
 if(key==11){
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
-spi_transmit_isr(spi,false, scheduleroff_bkg_pointers[0][0], sizeof(scheduleroff_bkg_pointers), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
+
+for (int i=0; i < (STRASETH-STRASETL); i++){
+spi_transmit_isr(spi,false, (uint8_t*) scheduleroff_bkg_pointers[i],(STCASETH-STCASETL)*16 , true);
+}
+
 alarm_OFF();
 vTaskDelay(pdTICKS_TO_MS(1000));
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
@@ -992,10 +1036,12 @@ taskYIELD();
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeD1, sizeof(array_of_commands_ISR_SCH_timeD1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeD1, sizeof(array_of_commands_ISR_SCH_timeD1), true);
 
-spi_transmit_isr(spi,false, timeD1_pointers_to_send[0][0], sizeof(timeD1_pointers_to_send), true);
 
+for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeD1_pointers_to_send[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
+}
 
 key=-1;
 
@@ -1051,18 +1097,21 @@ time[1]= key<<1;
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
 
-spi_transmit_isr(spi,false, timeH1_pointers_to_send[0][0], sizeof(timeH1_pointers_to_send), true);
+for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeH1_pointers_to_send[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
+}
 
 h1=key;
 }
 else if (key==0){
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
 
-spi_transmit_isr(spi,false, H1_time_SCH_pointers[0][0], sizeof(H1_time_pointers), true);
-
+for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) H1_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
+}
 
 }
 
@@ -1102,10 +1151,11 @@ time[1]= time[1] | key;
 				}
 		}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeH2, sizeof(array_of_commands_ISR_SCH_timeH2), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH2, sizeof(array_of_commands_ISR_SCH_timeH2), true);
 
-spi_transmit_isr(spi,false, timeH2_pointers_to_send[0][0], sizeof(timeH2_pointers_to_send), true);
-
+for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) H2_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
+}
 
 }
 key=-1;
@@ -1146,9 +1196,11 @@ time[0]= key<<1;
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeM1, sizeof(array_of_commands_ISR_SCH_timeM1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeM1, sizeof(array_of_commands_ISR_SCH_timeM1), true);
 
-spi_transmit_isr(spi,false, timeM1_pointers_to_send[0][0], sizeof(timeM1_pointers_to_send), true);
+for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) M1_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
+}
 
 
 key=-1;
@@ -1188,9 +1240,11 @@ time[0]= time[1] | key;
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_SCH_timeM2, sizeof(array_of_commands_ISR_SCH_timeM2), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeM2, sizeof(array_of_commands_ISR_SCH_timeM2), true);
 
-spi_transmit_isr(spi,false, timeM2_pointers_to_send[0][0], sizeof(timeM2_pointers_to_send), true);
+for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) M2_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
+}
 
 ic2_setup_alarm1(time[0], time[1]);
 
@@ -1216,9 +1270,13 @@ for(;;){
 
 ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERST, sizeof(array_of_commands_ISR_BANNERST), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERST, sizeof(array_of_commands_ISR_BANNERST), true);
 
-spi_transmit_isr(spi,false, set_time_pointers[0][0], sizeof(set_time_pointers), true);
+
+for(int i=0; i<(STRASETH-STRASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) set_time_pointers[i], (STCASETH-STCASETL)*16, true);
+}
+
 
 }
 
@@ -1243,9 +1301,12 @@ taskYIELD();
 
 }
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_BANNERST, sizeof(array_of_commands_ISR_BANNERST), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERST, sizeof(array_of_commands_ISR_BANNERST), true);
 
-spi_transmit_isr(spi,false, setup_time_bkg_pointers[0][0], sizeof(setup_time_bkg_pointers), true);
+
+for(int i=0; i<(STRASETH-STRASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) setup_time_bkg_pointers[i], (STCASETH-STCASETL)*16, true);
+}
 
 
 key=-1;
@@ -1301,18 +1362,24 @@ time[2]= key<<1;
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
 
-spi_transmit_isr(spi,false, timeH1_pointers_to_send[0][0], sizeof(timeH1_pointers_to_send), true);
+
+for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeH1_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
+}
+
+
 
 h1=key;
 }
 else if (key==0){
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
 
-spi_transmit_isr(spi,false, H1_time_pointers[0][0], sizeof(H1_time_pointers), true);
-
+for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) H1_time_pointers[i], (H1TCASETH-H1TCASETL)*16, true);
+}
 
 }
 
@@ -1353,10 +1420,11 @@ time[2]= time[2] | key;
 				}
 		}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeH2, sizeof(array_of_commands_ISR_timeH2), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeH2, sizeof(array_of_commands_ISR_timeH2), true);
 
-spi_transmit_isr(spi,false, timeH2_pointers_to_send[0][0], sizeof(timeH2_pointers_to_send), true);
-
+for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeH2_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
+}
 
 }
 
@@ -1398,9 +1466,11 @@ time[1]= key<<1;
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeM1, sizeof(array_of_commands_ISR_timeM1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeM1, sizeof(array_of_commands_ISR_timeM1), true);
 
-spi_transmit_isr(spi,false, timeM1_pointers_to_send[0][0], sizeof(timeM1_pointers_to_send), true);
+for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeM1_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
+}
 
 key=-1;
 
@@ -1439,9 +1509,12 @@ time[1]= time[1] | key;
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeM2, sizeof(array_of_commands_ISR_timeM2), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeM2, sizeof(array_of_commands_ISR_timeM2), true);
 
-spi_transmit_isr(spi,false, timeM2_pointers_to_send[0][0], sizeof(timeM2_pointers_to_send), true);
+for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeM2_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
+}
+
 
 key=-1;
 
@@ -1480,9 +1553,12 @@ time[0]= key<<1;
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeS1, sizeof(array_of_commands_ISR_timeS1), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeS1, sizeof(array_of_commands_ISR_timeS1), true);
 
-spi_transmit_isr(spi,false, timeS1_pointers_to_send[0][0], sizeof(timeS1_pointers_to_send), true);
+for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeS1_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
+}
+
 
 key=-1;
 
@@ -1523,9 +1599,11 @@ time[0]= time[0] | key;
 		}
 	}
 
-spi_transmit_isr(spi,true,*pointer_to_commands_isr_timeS2, sizeof(array_of_commands_ISR_timeS2), true);
+spi_transmit_isr(spi,true,pointer_to_commands_isr_timeS2, sizeof(array_of_commands_ISR_timeS2), true);
 
-spi_transmit_isr(spi,false, timeS2_pointers_to_send[0][0], sizeof(timeS2_pointers_to_send), true);
+for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeS2_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
+}
 
 }
 

@@ -42,13 +42,21 @@ esp_err_t ret = nvs_flash_init();
 // THIS PUT BIT 0 OF PORTA MCP IN 1 FOR KEYPAD READ THE * KEY WITHOUT MAP AT UNTIL KEY IS PRESSED
 	mcp23017_set_pins_PortA_high(MCPA0);
 
-  	//display_init in display_functions.c
-    xTaskCreatePinnedToCore(display_init, "display_init", (2*(COLARRAY*ROWARRAY*sizeof(uint16_t))+4096), NULL, TASK_PRIO_4, &xtaskHandleDisplay , CORE0);
+  	//display_init in background.c
+    xTaskCreatePinnedToCore(display_init, "display_init",
+     (2*(COLARRAY*ROWARRAY*sizeof(uint16_t))+4096),
+     NULL, TASK_PRIO_4, &xtaskHandleDisplay , CORE0);
 
-	//display_frames in display_functions.c
-    xTaskCreatePinnedToCore(display_frames, "display_frames",
-    (ROWTIME*COLTIME*sizeof(uint16_t))+(ROWAC*COLAC*sizeof(uint16_t))+(ROWDC*COLDC*sizeof(uint16_t))+5*(STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096,
+	//schedulerBackground in schedulerBackgorund.c
+    xTaskCreatePinnedToCore(schedulerBackground, "display_frames",
+    (2*(STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096),
+    NULL ,TASK_PRIO_4, NULL, CORE1);
+
+	//schedulerOffBackground in schedulerOffbackgorund.c
+    xTaskCreatePinnedToCore(schedulerOffBackground, "display_frames",
+    (2*(STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096),
     NULL ,TASK_PRIO_4, &xtaskHandleFrame, CORE1);
+
 
 	//timer_mosfet_start in mcpwm_init.c
     xTaskCreatePinnedToCore(timer_mosfet_start, "Mosfet_signal_start", 4096 ,NULL , TASK_PRIO_3, NULL, CORE0);
@@ -70,9 +78,6 @@ esp_err_t ret = nvs_flash_init();
 
 	// ac_pwm_control in adc_function.c
 	xTaskCreatePinnedToCore(ac_pwm_control, "pwm_controlAC", 4096 ,NULL , TASK_PRIO_2, &pwm_control_task, CORE1);
-
-	// wifi_start in ic2_commands_RTC_CLK.c 
-	xTaskCreatePinnedToCore(wifi_start, "wifi_start", 4096 ,NULL , TASK_PRIO_1,NULL,tskNO_AFFINITY);
 
 
   	//display_update_SET_TIME in display_functions.c
