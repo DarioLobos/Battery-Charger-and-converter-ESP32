@@ -30,8 +30,7 @@ static adc_cali_handle_t adc_cali_handle= NULL;
 static adc_continuous_handle_t adc_handle_continous = NULL;
 static adc_cali_handle_t * adc_cont_out_handle[5];
 
-
-static uint8_t * ADC_BUFFER[ADC_BUFFER_SIZE];
+static uint8_t *ADC_BUFFER = NULL; // Will be allocated in the task
 
 static TaskHandle_t pwm_control_task;
 static TaskHandle_t display_update_task;
@@ -103,70 +102,56 @@ static bool adc_calibration_init(adc_unit_t unit, adc_channel_t channel, adc_att
     return calibrated;
 }
 
-void adc_continous_DC_reading(void *pvparameter ){
+void adc_continous_DC_reading(void *pvparameter) {
+    // Correct allocation: allocating BYTES, not pointers
+    ADC_BUFFER = (uint8_t *)heap_caps_malloc(ADC_BUFFER_SIZE, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    
+    for(int i=0; i<4; i++){
+        adc_dc_results_pointers[i] = (uint16_t *)heap_caps_malloc(sizeof(uint16_t), MALLOC_CAP_SPIRAM);
+        adc_dc_voltage_pointers[i] = (int *)heap_caps_malloc(sizeof(int), MALLOC_CAP_SPIRAM);
+    }
 
-    ADC_BUFFER[0] = (uint8_t *)heap_caps_malloc(sizeof(ADC_BUFFER), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    ESP_ERROR_CHECK(adc_continuous_start(adc_handle_continous));
 
-	for(int i=0; i<4;i++){
-    adc_dc_results_pointers[i] = (uint16_t *)heap_caps_malloc(sizeof(uint16_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    for(;;) {
+        uint32_t ret_num = 0;
+        // Use the allocated pointer and actual buffer size
+        esp_err_t ret = adc_continuous_read(adc_handle_continous, ADC_BUFFER, ADC_BUFFER_SIZE, &ret_num, 0);
 
+        if (ret == ESP_OK) {
+            // Data processing here
+        }
+        // Yield for Aware Discovery
+        vTaskDelay(pdMS_TO_TICKS(10)); 
+    }
 }
 
-	for(int i=0; i<4;i++){
-    adc_dc_voltage_pointers[i] = (int *)heap_caps_malloc(sizeof(int), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
 
+
+void adc_one_shoot_AC_reading(void *pvparameter) {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    pointer_ADC_results_AC = (int*)heap_caps_malloc(sizeof(int), MALLOC_CAP_SPIRAM);
+    static int adc_raw[10];
+
+    for(;;){
+        int temp = 0;
+        // REMOVED Critical Section: adc_oneshot_read is safe. 
+        // Disabling interrupts for 10 reads kills Wi-Fi performance.
+        for(int i=0; i<10; i++){
+            adc_oneshot_read(adc_handle_one_shoot, ADC1_AC, &adc_raw[i]);
+            temp += adc_raw[i];
+        }
+
+        temp /= 10;
+        adc_cali_raw_to_voltage(adc_cali_handle, temp, pointer_ADC_results_AC); 
+
+        xTaskNotifyGive(pwm_control_task);
+        xTaskNotifyGive(display_update_task);
+
+        // Increase to 10ms to allow Wi-Fi Aware Match Filter to process
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10));
+    }
 }
-
-
-  ESP_ERROR_CHECK(adc_continuous_start(adc_handle_continous));
-
-}
-
-
-void adc_one_shoot_AC_reading(void *pvparameter ){
-
-	TickType_t xLastWakeTime;
-
-    pointer_ADC_results_AC = (int*)heap_caps_malloc(sizeof(int), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-
-	static int adc_raw[10];
-
-	static int temp=0;
-
-for(;;){
-
-	xLastWakeTime =  xTaskGetTickCount();
-
-
-vPortEnterCritical(CORE0);
-
-for(int i=0;i<10;i++){
-ESP_ERROR_CHECK(adc_oneshot_read(adc_handle_one_shoot, ADC1_AC, &adc_raw[i]));
-}
-
-taskEXIT_CRITICAL(CORE0);
-
-for(int i=0;i<10;i++){
-
-temp +=  adc_raw[i]; 
-
-}
-
-temp= temp/10;
-
-adc_cali_raw_to_voltage(adc_cali_handle, temp, pointer_ADC_results_AC); 
-
-
-xTaskNotifyGive(pwm_control_task);
-xTaskNotifyGive(display_update_task);
-
-
-vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(4));
-
-
-}
-}
-
 void ac_pwm_control (void *pvparameter ){
 
 

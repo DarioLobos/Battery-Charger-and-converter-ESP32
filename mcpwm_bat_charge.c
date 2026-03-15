@@ -57,7 +57,7 @@ static void timer_setup_DC (void){
 	mcpwm_timer_config_t timer_config;
     
     timer_config.clk_src = MCPWM_TIMER_CLK_SRC_DEFAULT;
-    timer_config.group_id = 0;
+    timer_config.group_id = 1;
     timer_config.resolution_hz = TIMERDC_RESOLUTION_HZ;
     timer_config.period_ticks = TIMERDC_PERIOD;
     timer_config.count_mode = MCPWM_TIMER_COUNT_MODE_UP;
