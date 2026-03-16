@@ -93,6 +93,68 @@ static TaskHandle_t	xdiscovery_task = NULL;
 
 static TaskHandle_t xserver_task = NULL;
 
+typedef struct {
+uint8_t device_id;
+// 1 byte (0-99)
+uint8_t start_hour; // 1 byte
+uint8_t start_min;// 1 byte
+uint8_t stop_hour;// 1 byte
+uint8_t stop_min;// 1 byte
+} scheduler_entry_t;
+
+typedef struct {
+uint8_t start_flag; // 1 bytee
+uint8_t stop_flag;// 1 byte
+} scheduler_flags;
+
+static scheduler_entry_t * SCHEDULER_DATA [MAX_DEVICES];
+
+static scheduler_flags * SCHEDULER_FLAGS [MAX_DEVICES];
+
+
+void save_all_schedules(uint8_t* arrayschedulers[]) {
+nvs_handle_t nvs_h;
+if (nvs_open("storage", NVS_READWRITE, &nvs_h) == ESP_OK) {
+// Save the entire 500-byte array as one blob
+nvs_set_blob(nvs_h, "sched_data", arrayschedulers, NUMBER_DEVICES*5);
+nvs_commit(nvs_h);
+nvs_close(nvs_h);
+printf("Schedules saved to NVS\n");
+}
+}
+void load_all_schedules() {
+nvs_handle_t nvs_h;
+size_t required_size =NUMBER_DEVICES*5;
+if (nvs_open("storage", NVS_READONLY, &nvs_h) == ESP_OK) {
+nvs_get_blob(nvs_h, "sched_data", SCHEDULER_DATA, &required_size);
+nvs_close(nvs_h);
+
+printf("Schedules loaded from NVS\n");
+}
+}
+
+void save_number_devices_to_nvs() {
+    nvs_handle_t buffer;
+    if (nvs_open("storage", NVS_READWRITE, &buffer) == ESP_OK) {
+        nvs_set_i32(buffer, "number_devices", NUMBER_DEVICES); 
+        nvs_commit(buffer);
+        nvs_close(buffer);
+    }
+}
+
+void load_number_devices_from_nvs() {
+    nvs_handle_t buffer;
+    if (nvs_open("storage", NVS_READONLY, &buffer) == ESP_OK) {
+        size_t buffer_size = 4;
+        // If these fail, they keep the hardcoded default values
+        nvs_get_i32(buffer, "number_devices", &BUFFER_SIZE);
+        
+        nvs_close(buffer_size);
+        ESP_LOGI(TAG, "NVS: RESTORED BUFFERSIZE");
+    }
+}
+
+
 void load_settings_from_nvs() {
     nvs_handle_t my_handle;
     if (nvs_open("storage", NVS_READONLY, &my_handle) == ESP_OK) {
@@ -139,26 +201,6 @@ void load_buffer_size_from_nvs() {
     }
 }
 
-void save_number_devices_to_nvs() {
-    nvs_handle_t buffer;
-    if (nvs_open("storage", NVS_READWRITE, &buffer) == ESP_OK) {
-        nvs_set_i32(buffer, "number_devices", NUMBER_DEVICES); 
-        nvs_commit(buffer);
-        nvs_close(buffer);
-    }
-}
-
-void load_number_devices_from_nvs() {
-    nvs_handle_t buffer;
-    if (nvs_open("storage", NVS_READONLY, &buffer) == ESP_OK) {
-        size_t buffer_size = 4;
-        // If these fail, they keep the hardcoded default values
-        nvs_get_i32(buffer, "number_devices", &BUFFER_SIZE);
-        
-        nvs_close(buffer_size);
-        ESP_LOGI(TAG, "NVS: RESTORED BUFFERSIZE");
-    }
-}
 
 
 static void nan_receive_event_handler(void *arg, esp_event_base_t event_base,
@@ -276,7 +318,7 @@ void nan_discovery_task(void *pvParameters) {
                 esp_wifi_nan_send_message(&fup);
                 ESP_LOGI(TAG, "IPv6 Follow-up sent to Android MAC: "MACSTR, MAC2STR(fup.peer_mac));
             }
-        }
+       }
     }
 }
 
@@ -289,8 +331,67 @@ void initialise_wifi(void)
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM) );
 }
 
-void processScheduler(char *rx_buffer,int len){
-//pending
+void processScheduler(void *rx_buffer,int len){
+
+	if(len != NUMBER_DEVICES*5){
+                ESP_LOGI(TAG, "ERROR LENGH DATA DIFFER FROM NUMBER DEVICES ");
+	return;
+	}
+	
+save_all_schedules(rx_buffer);
+
+
+}
+
+void devices_scheduler_phone(void *pvParameters) {
+
+	uint8_t bits; 
+	for(int i=0; i < MAX_DEVICES;i++){
+		SCHEDULER_FLAGS[i]->start_flag= 0;
+		SCHEDULER_FLAGS[i]->stop_flag= 0;
+		}
+
+	for(;;){
+		vTaskDelay(60000);
+		load_all_schedules();
+		 
+		
+		for(int i=0 ; i < NUMBER_DEVICES; i++){
+
+			if ((SCHEDULER_FLAGS[i]->start_flag== 0) & 
+			(SCHEDULER_DATA[i]->start_hour == *received_time[2]) &
+		 	(SCHEDULER_DATA[i]->start_min > *received_time[1])){
+				bits =SCHEDULER_DATA[i]->device_id;
+		
+				mcp23017_set_pins_PortB_high(bits);
+
+				vTaskDelay(200);
+
+				mcp23017_set_pins_PortB_high(0);
+	
+				SCHEDULER_FLAGS[i]->start_flag= 1;
+				SCHEDULER_FLAGS[i]->stop_flag= 0;
+	
+			}
+			if ((SCHEDULER_FLAGS[i]->stop_flag== 0) & 
+				(SCHEDULER_DATA[i]->stop_hour == *received_time[2])&
+				(SCHEDULER_DATA[i]->stop_min > *received_time[1])){
+		
+				bits = SCHEDULER_DATA[i]->device_id + 1;
+		
+				mcp23017_set_pins_PortB_high(bits);
+
+				vTaskDelay(200);
+
+				mcp23017_set_pins_PortB_high(0);
+	
+				SCHEDULER_FLAGS[i]->start_flag= 1;
+				SCHEDULER_FLAGS[i]->stop_flag= 0;
+	
+			}
+		}
+	}
+
 }
 
 void runDevice(char *rx_buffer,int len){
@@ -301,7 +402,7 @@ void runDevice(char *rx_buffer,int len){
         // I set limit of devices in 100 and this will use 200 numbers
 		// with only 100 devices I can only use port B of MCP which is 
 		// connected to the emiter decoder of RF
-		// I will leave 40ms signal on and then turn off this is the minimun
+		// I will leave 200ms signal on and then turn off this is the minimun
 		// because can get blocked the task at this time but doesn't matter for stop use
 		// another code.
 		
@@ -311,7 +412,9 @@ void runDevice(char *rx_buffer,int len){
 		uint8_t bits =(uint8_t) *rx_buffer; 
 		
 		mcp23017_set_pins_PortB_high(bits);
-		sleep(40);
+
+		vTaskDelay(200);
+
 		mcp23017_set_pins_PortB_high(0);
 		 
 }
@@ -386,40 +489,40 @@ void wifi_aware_socket_task(void *pvParameters) {
                     ESP_LOGI(TAG, "From Android: %s", rx_buffer);
 
                     // 3. Send response back hand shake ok with 0xff
- 					if(rx_buffer[len]==(char) 0xff){                   
+ 					if(rx_buffer[len-1]==(char) 0xff){                   
                     	const char msg = (char) HANDSHAKE_OK;
                     	send(sock, &msg, 1, 0);
                     	
-                    	char * ptr_rx_buffer = &rx_buffer[2];
+                    	char * ptr_rx_buffer = &rx_buffer[1];
                     	
                     	switch(rx_buffer[0]){
                     	
                     		case RECEIVED_SCHEDULER:
-                    			processScheduler(&ptr_rx_buffer, len-3);
+                    			processScheduler(ptr_rx_buffer, len-2);
                     			goto close;
                     		
                     		case RECEIVED_C_REMOTE:
-                    			runDevice(&ptr_rx_buffer, len-3);
+                    			runDevice(ptr_rx_buffer, len-2);
                     			goto close;
                     	
                     		case RECEIVED_TIME:
-                    			setupTime(&ptr_rx_buffer, len-3);
+                    			setupTime(ptr_rx_buffer, len-2);
                     			goto close;
                     	
                     		case RECEIVED_CHARGER_TIME:
-                    			chargerScheduler(&ptr_rx_buffer, len-3);
+                    			chargerScheduler(ptr_rx_buffer, len-2);
                     			goto close;
                     	
                     		case RECEIVED_REPORT_REQ:
-                    			sendStatus(&ptr_rx_buffer, len-3);
+                    			sendStatus(ptr_rx_buffer, len-2);
                     			goto close;
 
                     		case RECEIVED_MATCH_FILTER:
-                    			newMatchFilter(&ptr_rx_buffer, len-3);
+                    			newMatchFilter(ptr_rx_buffer, len-2);
                     			goto close;
 
                     		case RECEIVED_QUANTITY_DEVICES:
-                    			newQuantityDevices(&ptr_rx_buffer, len-3);
+                    			newQuantityDevices(ptr_rx_buffer, len-2);
                     			goto close;
                     	}
                     

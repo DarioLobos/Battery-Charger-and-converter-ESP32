@@ -1,6 +1,9 @@
 /*Configuration and Macros
 CONFIGURATION OF WIFI IN AWARE.C
 */
+// define maximun devives fpr scheduler
+
+#define MAX_DEVICES 100
 
 // TASK AND CORES
 #define TASK_PRIO_4         4
