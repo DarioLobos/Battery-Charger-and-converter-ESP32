@@ -76,6 +76,8 @@ static int BUFFER_SIZE= 128;
 
 static int NUMBER_DEVICES= 8;
 
+static uint8_t EMPTY_HOUR=200;
+
 static char CONFIG_ESP_WIFI_NAN_MATCHING_FILTER[7] ={'1','2','3','4','5','6','\n'};
 
 static char MAC_REMOTE[ETH_ALEN]; 
@@ -358,8 +360,8 @@ void devices_scheduler_phone(void *pvParameters) {
 		
 		for(int i=0 ; i < NUMBER_DEVICES; i++){
 
-			if ((SCHEDULER_FLAGS[i]->start_flag== 0) & 
-			(SCHEDULER_DATA[i]->start_hour == *received_time[2]) &
+			if ((SCHEDULER_DATA[i]->start_hour != EMPTY_HOUR) && (SCHEDULER_FLAGS[i]->start_flag== 0) && 
+			(SCHEDULER_DATA[i]->start_hour == *received_time[2]) &&
 		 	(SCHEDULER_DATA[i]->start_min > *received_time[1])){
 				bits =SCHEDULER_DATA[i]->device_id;
 		
@@ -373,8 +375,8 @@ void devices_scheduler_phone(void *pvParameters) {
 				SCHEDULER_FLAGS[i]->stop_flag= 0;
 	
 			}
-			if ((SCHEDULER_FLAGS[i]->stop_flag== 0) & 
-				(SCHEDULER_DATA[i]->stop_hour == *received_time[2])&
+			if ((SCHEDULER_DATA[i]->stop_hour != EMPTY_HOUR) && (SCHEDULER_FLAGS[i]->stop_flag== 0) && 
+				(SCHEDULER_DATA[i]->stop_hour == *received_time[2]) &&
 				(SCHEDULER_DATA[i]->stop_min > *received_time[1])){
 		
 				bits = SCHEDULER_DATA[i]->device_id + 1;
