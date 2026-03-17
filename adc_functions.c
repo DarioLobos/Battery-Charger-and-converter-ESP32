@@ -618,7 +618,7 @@ for(;;){
 
 // I am using the read to block the task, I there no egough time to run other task, taskdelay(] should be used
 
-adc_continuous_read(adc_handle_continous,*ADC_BUFFER, ADC_FRAME_SIZE,&rxlength,portMAX_DELAY );
+adc_continuous_read(adc_handle_continous,ADC_BUFFER, ADC_FRAME_SIZE,&rxlength,portMAX_DELAY );
 
 adc_continuous_flush_pool( adc_handle_continous);
 

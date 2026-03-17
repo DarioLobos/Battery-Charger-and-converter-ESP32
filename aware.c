@@ -145,10 +145,10 @@ void load_number_devices_from_nvs() {
     if (nvs_open("storage", NVS_READONLY, &buffer) == ESP_OK) {
         size_t buffer_size = 4;
         // If these fail, they keep the hardcoded default values
-        nvs_get_i32(buffer, "number_devices", &BUFFER_SIZE);
+        nvs_get_i32(buffer, "number_devices", &NUMBER_DEVICES);
         
         nvs_close(buffer_size);
-        ESP_LOGI(TAG, "NVS: RESTORED BUFFERSIZE");
+        ESP_LOGI(TAG, "NVS: RESTORED NUMBER_DEVICES");
     }
 }
 
@@ -194,7 +194,7 @@ void load_buffer_size_from_nvs() {
         // If these fail, they keep the hardcoded default values
         nvs_get_i32(buffer, "buffer_size", &BUFFER_SIZE);
         
-        nvs_close(buffer_size);
+        nvs_close(buffer);
         ESP_LOGI(TAG, "NVS: RESTORED BUFFERSIZE");
     }
 }
@@ -245,19 +245,23 @@ static void nan_ndp_confirm_event_handler(void *arg, esp_event_base_t base, int3
 }
 
 uint8_t wifi_nan_publish(void){
-   nan_event_group = xEventGroupCreate();
-    esp_event_handler_instance_t instance_any_id;
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
-                    WIFI_EVENT_NAN_RECEIVE,
-                    &nan_receive_event_handler,
-                    NULL,
-                    &instance_any_id));
 
-    /* Start NAN Discovery */
-    wifi_nan_config_t nan_cfg = WIFI_NAN_CONFIG_DEFAULT(); //wifi_nan_sync_config_t and WIFI_NAN_SYNC_CONFIG_DEFAULT() this mention in example does not exist
+	static bool handlers_registered = false;
+	esp_event_handler_instance_t instance_any_id;
+    static bool netif_created = false;
 
-    esp_netif_create_default_wifi_nan();
-    esp_wifi_nan_start(&nan_cfg);
+
+   // FIX: Only create the event group if it doesn't already exist
+    if (nan_event_group == NULL) {
+        nan_event_group = xEventGroupCreate();
+    }
+    
+ 	if (!handlers_registered) {
+ 	  ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
+  	                  WIFI_EVENT_NAN_RECEIVE,
+   	                 &nan_receive_event_handler,
+   	                 NULL,
+    	                &instance_any_id));
 
     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
                     WIFI_EVENT_NDP_INDICATION,
@@ -268,6 +272,23 @@ uint8_t wifi_nan_publish(void){
                     
     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
                     WIFI_EVENT_NDP_CONFIRM, &nan_ndp_confirm_event_handler, NULL, NULL));
+
+      handlers_registered = true;     
+	}
+	
+    /* Start NAN Discovery */
+    wifi_nan_config_t nan_cfg = WIFI_NAN_CONFIG_DEFAULT(); //wifi_nan_sync_config_t and WIFI_NAN_SYNC_CONFIG_DEFAULT() this mention in example does not exist
+
+    // FIX: Use a static flag to ensure Netif is only created ONCE
+
+    if (!netif_created) {
+        esp_netif_create_default_wifi_nan();
+        netif_created = true;
+    }
+
+
+    esp_wifi_nan_start(&nan_cfg);
+
 
     /* Publish a service */
     uint8_t pub_id;
@@ -440,20 +461,36 @@ void sendStatus(int soc){
 	
 }
 
-void newMatchFilter(char *rx_buffer,int len){
+void newMatchFilter(char *rx_buffer, int len) {
+  
+    // rx_buffer is the pointer to the 7-byte filter string
+    memcpy(CONFIG_ESP_WIFI_NAN_MATCHING_FILTER, rx_buffer, 7);
 
-		// must be 7 bytes
-		if (len!=7){return;} 
+    // 2. Save to NVS so it is remembered if the power is cut
+    save_settings_to_nvs();
 
-        memcpy(&CONFIG_ESP_WIFI_NAN_MATCHING_FILTER, &rx_buffer, 7);
- 		save_settings_to_nvs();
+    // 3. Perform a "Soft" Wi-Fi Restart
+    // This resets the Wi-Fi hardware to apply the new filter 
+    // but DOES NOT reset the CPU or your RAM variables.
+    ESP_LOGI("WIFI_AWARE", "Applying new filter: %s", CONFIG_ESP_WIFI_NAN_MATCHING_FILTER);
+    
+    esp_wifi_nan_stop(); 
+    esp_wifi_stop();      
+    
+    // 4. Restart just the Wi-Fi Driver
+    // Do NOT call initialise_wifi() here
+    esp_wifi_start();
+
+    // 5. Re-register the NAN service with the new filter
+    // Your wifi_nan_publish() should use CONFIG_ESP_WIFI_NAN_MATCHING_FILTER
+    wifi_nan_publish();
 }
 
 void newQuantityDevices(char *rx_buffer,int len){
 
 		// must be 1 byte
 		if (len!=1){return;}
-		memcpy(&NUMBER_DEVICES, &rx_buffer, 1);
+		memcpy(&NUMBER_DEVICES, rx_buffer, 1);
 		save_number_devices_to_nvs();
 		int buffer_size= *rx_buffer * 16 + 8;
 		memcpy(&BUFFER_SIZE, &buffer_size, 4);

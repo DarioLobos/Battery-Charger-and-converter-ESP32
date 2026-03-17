@@ -192,25 +192,25 @@ else if(col==GPIO_KEYPADCOL2){
 
 		if(row==GPIO_KEYPADROW0){
 
-			key=2;
+			key=3;
 
 		}
 
 		else if(row==GPIO_KEYPADROW1){
 
-			key=5;
+			key=7;
 
 		}
 
 		else if(row==GPIO_KEYPADROW2){
 
-			key=8;
+			key=9;
 
 		}
 
 		else if(row==GPIO_KEYPADROW3){
 
-			key=0;
+			key=12;
 
 		}
 }
