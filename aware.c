@@ -104,15 +104,11 @@ uint8_t stop_hour;// 1 byte
 uint8_t stop_min;// 1 byte
 } scheduler_entry_t;
 
-typedef struct {
-uint8_t start_flag; // 1 bytee
-uint8_t stop_flag;// 1 byte
-} scheduler_flags;
+static uint8_t SCHEDULER_FLAG[MAX_DEVICES];; 
 
 static scheduler_entry_t * SCHEDULER_DATA [MAX_DEVICES];
 
-static scheduler_flags * SCHEDULER_FLAGS [MAX_DEVICES];
-
+static int * voltages_to_phone[5];
 
 void save_all_schedules(uint8_t* arrayschedulers[]) {
 nvs_handle_t nvs_h;
@@ -349,8 +345,7 @@ void devices_scheduler_phone(void *pvParameters) {
 
 	uint8_t bits; 
 	for(int i=0; i < MAX_DEVICES;i++){
-		SCHEDULER_FLAGS[i]->start_flag= 0;
-		SCHEDULER_FLAGS[i]->stop_flag= 0;
+		SCHEDULER_FLAG[i]= 0;
 		}
 
 	for(;;){
@@ -360,7 +355,7 @@ void devices_scheduler_phone(void *pvParameters) {
 		
 		for(int i=0 ; i < NUMBER_DEVICES; i++){
 
-			if ((SCHEDULER_DATA[i]->start_hour != EMPTY_HOUR) && (SCHEDULER_FLAGS[i]->start_flag== 0) && 
+			if ((SCHEDULER_DATA[i]->start_hour != EMPTY_HOUR) && (SCHEDULER_FLAG[i]== 0) && 
 			(SCHEDULER_DATA[i]->start_hour == *received_time[2]) &&
 		 	(SCHEDULER_DATA[i]->start_min > *received_time[1])){
 				bits =SCHEDULER_DATA[i]->device_id;
@@ -370,12 +365,10 @@ void devices_scheduler_phone(void *pvParameters) {
 				vTaskDelay(200);
 
 				mcp23017_set_pins_PortB_high(0);
-	
-				SCHEDULER_FLAGS[i]->start_flag= 1;
-				SCHEDULER_FLAGS[i]->stop_flag= 0;
+				SCHEDULER_FLAG[i]= 0;
 	
 			}
-			if ((SCHEDULER_DATA[i]->stop_hour != EMPTY_HOUR) && (SCHEDULER_FLAGS[i]->stop_flag== 0) && 
+			if ((SCHEDULER_DATA[i]->stop_hour != EMPTY_HOUR) && (SCHEDULER_FLAG[i]== 1) && 
 				(SCHEDULER_DATA[i]->stop_hour == *received_time[2]) &&
 				(SCHEDULER_DATA[i]->stop_min > *received_time[1])){
 		
@@ -387,8 +380,7 @@ void devices_scheduler_phone(void *pvParameters) {
 
 				mcp23017_set_pins_PortB_high(0);
 	
-				SCHEDULER_FLAGS[i]->start_flag= 1;
-				SCHEDULER_FLAGS[i]->stop_flag= 0;
+				SCHEDULER_FLAG[i]= 0;
 	
 			}
 		}
@@ -429,8 +421,23 @@ void chargerScheduler(char *rx_buffer,int len){
 //pending
 }
 
-void sendStatus(char *rx_buffer,int len){
-//pending
+void sendStatus(int soc){
+
+ 
+	int received_voltageAC= *pointer_ADC_results_AC; 
+
+	received_voltageAC= (int)((received_voltageAC*110000/2350)+5)/10; //transform to AC , eliminate one digit rounding, 
+
+	
+	for (int i = 0; i<4 ; i++){
+		*voltages_to_phone[i] = *adc_dc_voltage_pointers[i]; 
+		}
+
+	*voltages_to_phone[4]= received_voltageAC;
+	
+	send(soc,voltages_to_phone[0],sizeof(uint16_t)*5,0);
+	
+	
 }
 
 void newMatchFilter(char *rx_buffer,int len){
@@ -516,7 +523,7 @@ void wifi_aware_socket_task(void *pvParameters) {
                     			goto close;
                     	
                     		case RECEIVED_REPORT_REQ:
-                    			sendStatus(ptr_rx_buffer, len-2);
+                    			sendStatus(sock);
                     			goto close;
 
                     		case RECEIVED_MATCH_FILTER:
