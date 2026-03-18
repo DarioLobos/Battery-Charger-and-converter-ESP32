@@ -251,7 +251,6 @@ uint8_t wifi_nan_publish(void){
     static bool netif_created = false;
 
 
-   // FIX: Only create the event group if it doesn't already exist
     if (nan_event_group == NULL) {
         nan_event_group = xEventGroupCreate();
     }

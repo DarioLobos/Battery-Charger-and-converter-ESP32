@@ -120,15 +120,26 @@ GPIO.out_w1ts= GPIO.out_w1ts | GPIO_KEYPADCOL0;
 
 }
 
-int  pressed_key (uint8_t col){
+int  pressed_key (int col, int delayms ){
 
 uint32_t row=-1;
 
 uint8_t key=-1;
 
-
+if(delayms==-1){
 xTaskNotifyWait(0, 0, &row, portMAX_DELAY);
+}
+else{
 
+xTaskNotifyWait(0, 0, &row, pdTICKS_TO_MS(delayms));
+
+}
+
+if (col ==-1){
+
+return -1;
+
+}
 
 // KEYS 11 * ,12 # ARE SPECIAL KEYS
 
@@ -186,6 +197,7 @@ else if(col==GPIO_KEYPADCOL1){
 			key=0;
 
 		}
+
 }
 else if(col==GPIO_KEYPADCOL2){
 
@@ -198,7 +210,7 @@ else if(col==GPIO_KEYPADCOL2){
 
 		else if(row==GPIO_KEYPADROW1){
 
-			key=7;
+			key=6;
 
 		}
 
@@ -213,6 +225,7 @@ else if(col==GPIO_KEYPADCOL2){
 			key=12;
 
 		}
+
 }
 
 return key;

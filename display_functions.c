@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <rom/ets_sys.h>
 #include <inttypes.h>
 #include <sys/types.h>
 #include "esp_log.h"
@@ -686,9 +687,431 @@ vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1000));
 }
 
 
+void display_update_SET_SCHEDULER_TIME(void){
+
+int key;
+
+int h1=-1;
+
+//time[0]=seconds time[1]=minutes time[0]=seconds
+
+uint8_t time[2];
+
+for(;;){
 
 
-void display_update_SET_SCHEDULER_TIME2(void){
+spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
+for (int i=0; i < (STRASETH-STRASETL); i++){
+spi_transmit_isr(spi,false, (uint8_t*) seton_time1_bkg_pointers[i],(STCASETH-STCASETL)*16 , true);
+}
+
+key=-1;
+
+while ((key< 0)){
+
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
+
+}
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
+taskYIELD();
+continue;
+}
+
+
+if(key==11){
+
+spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
+
+for (int i=0; i < (STRASETH-STRASETL); i++){
+spi_transmit_isr(spi,false, (uint8_t*) scheduleroff_bkg_pointers[i],(STCASETH-STCASETL)*16 , true);
+}
+
+alarm_OFF();
+vTaskDelay(pdTICKS_TO_MS(1000));
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+taskYIELD();
+continue;
+}
+
+
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[11][j]&(1<<i))>0){
+				timeD1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeD1_pointers_to_send[i][j]=D1_time_SCH_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeD1, sizeof(array_of_commands_ISR_SCH_timeD1), true);
+
+
+for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeD1_pointers_to_send[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
+}
+
+key=-1;
+
+while ((key!=12)&&(key!=1)&&(key!=2) ){
+
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
+
+}
+
+if(key==1){
+
+key=-1;
+
+while ((key!=12)&&(key>2)&&(key<0) ){
+
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
+
+}
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
+taskYIELD();
+continue;
+
+}
+
+else if((key>0)&&(key<3)){
+
+time[1]= key*10;
+
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeH1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeH1_pointers_to_send[i][j]=H1_time_SCH_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
+
+for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) timeH1_pointers_to_send[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
+}
+
+h1=key;
+}
+else if (key==0){
+
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
+
+for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) H1_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
+}
+
+}
+
+key=-1;
+
+while ((key!=12) && !(h1==2 && key<4) && !((h1<2) && (key>=0)) ){
+
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
+taskYIELD();
+continue;
+
+}
+
+time[1]+= key;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeH2_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeH2_pointers_to_send[i][j]=H2_time_SCH_pointers[i][j];
+
+				}
+		}
+
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH2, sizeof(array_of_commands_ISR_SCH_timeH2), true);
+
+for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) H2_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
+}
+
+}
+key=-1;
+ 
+while ((key!=12)&& (key>6) && (key<0)) {
+
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
+taskYIELD();
+continue;
+
+}
+
+
+time[0]= key*10;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeM1_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeM1_pointers_to_send[i][j]=M1_time_SCH_pointers[i][j];;
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeM1, sizeof(array_of_commands_ISR_SCH_timeM1), true);
+
+for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) M1_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
+}
+
+
+key=-1;
+
+while ((key!=12) && (key>6) && (key<0)) {
+
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
+
+}
+
+
+if(key==12){
+
+xTaskNotifyGive(xtaskHandleReset_BKG_Time);
+mcp23017_set_pins_PortA_high(MCPA0);
+taskYIELD();
+continue;
+}
+
+time[0]+= key;
+
+	for (int j=0;j<8;j++){
+		
+		for(int i=0;i<8;i++){
+			if((font_bits[key][j]&(1<<i))>0){
+				timeM2_pointers_to_send[i][j]=TIMECOLOR;
+				}
+			else{
+				timeM2_pointers_to_send[i][j]=M2_time_SCH_pointers[i][j];
+
+				}
+		}
+	}
+
+spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeM2, sizeof(array_of_commands_ISR_SCH_timeM2), true);
+
+for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
+spi_transmit_isr(spi,false,(uint8_t*) M2_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
+}
+
+ic2_setup_alarm1(time[0], time[1]);
+
+vTaskDelay(pdMS_TO_TICKS(500));
+
 
 int key;
 
@@ -729,14 +1152,37 @@ spi_transmit_isr(spi,false,(uint8_t*) timeD1_pointers_to_send[i], (SCHTIMERASETH
 
 key=-1;
 
-while ((key!=12)|(key!=1)|key!=2 ){
+while ((key!=12)&&(key!=1)&&(key!=2)){
 
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
 
 }
 
@@ -744,14 +1190,37 @@ if(key==1){
 
 key=-1;
 
-while ((key!=12)|(key>2)|key<0 ){
+while ((key!=12)&&((key>2)||(key<0))){
 
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
 
 }
 
@@ -760,12 +1229,12 @@ if(key==12){
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
-
+continue;
 }
 
-else if((key>0)&(key<3)){
+else if((key>0)&&(key<3)){
 
-time[1]= key<<1;
+time[1]= key*10;
 
 
 	for (int j=0;j<8;j++){
@@ -803,14 +1272,37 @@ spi_transmit_isr(spi,false,(uint8_t*) H1_time_SCH_pointers[i], (SCHTIMERASETH-SC
 
 key=-1;
 
-while ((key!=12)|!(h1==2 & key<4) |((h1<2) & ((key==0) | (key>0))) ){
+while ((key!=12) && !(h1==2 && key<4) && !((h1<2) &&  (key>=0)) ){
 
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
 
 }
 
@@ -820,10 +1312,11 @@ if(key==12){
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
+continue;
 
 }
 
-time[1]= time[1] | key;
+time[1]+= key;
 
 	for (int j=0;j<8;j++){
 		
@@ -848,14 +1341,37 @@ spi_transmit_isr(spi,false,(uint8_t*) timeH2_pointers_to_send[i], (SCHTIMERASETH
  
 key=-1;
 
-while ((key!=12)|(key>6) | (key<0)) {
+while ((key!=12)&&(key>6) && (key<0)) {
 
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
 
 }
 
@@ -865,11 +1381,11 @@ if(key==12){
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
-
+continue;
 }
 
 
-time[0]= key<<1;
+time[0]= key*10;
 
 	for (int j=0;j<8;j++){
 		
@@ -892,14 +1408,37 @@ spi_transmit_isr(spi,false,(uint8_t*) timeM1_pointers_to_send[i], (SCHTIMERASETH
 
 key=-1;
 
-while ((key!=12)|(key>9) | (key<0)) {
+while ((key!=12)&&(key>9) &&(key<0)) {
 
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
 
 }
 
@@ -909,10 +1448,10 @@ if(key==12){
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
-
+continue;
 }
 
-time[0]= time[1] | key;
+time[0]+= key;
 
 	for (int j=0;j<8;j++){
 		
@@ -953,6 +1492,7 @@ vTaskDelay(pdMS_TO_TICKS(1000));
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
+continue;
 
 }
 
@@ -960,297 +1500,9 @@ else{
 
 mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
-
-}
-}
-
-
-
-void display_update_SET_SCHEDULER_TIME(void){
-
-int key;
-
-int h1=-1;
-
-//time[0]=seconds time[1]=minutes time[0]=seconds
-
-uint8_t time[2];
-
-for(;;){
-
-
-spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
-for (int i=0; i < (STRASETH-STRASETL); i++){
-spi_transmit_isr(spi,false, (uint8_t*) seton_time1_bkg_pointers[i],(STCASETH-STCASETL)*16 , true);
+continue;
 }
 
-key=-1;
-
-while ((key< 0)){
-
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
-
-}
-
-if(key==12){
-
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-mcp23017_set_pins_PortA_high(MCPA0);
-taskYIELD();
-
-}
-
-
-if(key==11){
-
-spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
-
-for (int i=0; i < (STRASETH-STRASETL); i++){
-spi_transmit_isr(spi,false, (uint8_t*) scheduleroff_bkg_pointers[i],(STCASETH-STCASETL)*16 , true);
-}
-
-alarm_OFF();
-vTaskDelay(pdTICKS_TO_MS(1000));
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-taskYIELD();
-
-}
-
-
-
-	for (int j=0;j<8;j++){
-		
-		for(int i=0;i<8;i++){
-			if((font_bits[11][j]&(1<<i))>0){
-				timeD1_pointers_to_send[i][j]=TIMECOLOR;
-				}
-			else{
-				timeD1_pointers_to_send[i][j]=D1_time_SCH_pointers[i][j];
-
-				}
-		}
-	}
-
-spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeD1, sizeof(array_of_commands_ISR_SCH_timeD1), true);
-
-
-for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
-spi_transmit_isr(spi,false,(uint8_t*) timeD1_pointers_to_send[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
-}
-
-key=-1;
-
-while ((key!=12)|(key!=1)|(key!=2) ){
-
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
-
-}
-
-if(key==1){
-
-key=-1;
-
-while ((key!=12)|(key>2)|(key<0) ){
-
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
-
-}
-
-if(key==12){
-
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-mcp23017_set_pins_PortA_high(MCPA0);
-taskYIELD();
-
-}
-
-else if((key>0)&(key<3)){
-
-time[1]= key<<1;
-
-
-	for (int j=0;j<8;j++){
-		
-		for(int i=0;i<8;i++){
-			if((font_bits[key][j]&(1<<i))>0){
-				timeH1_pointers_to_send[i][j]=TIMECOLOR;
-				}
-			else{
-				timeH1_pointers_to_send[i][j]=H1_time_SCH_pointers[i][j];
-
-				}
-		}
-	}
-
-spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
-
-for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
-spi_transmit_isr(spi,false,(uint8_t*) timeH1_pointers_to_send[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
-}
-
-h1=key;
-}
-else if (key==0){
-
-spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
-
-for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
-spi_transmit_isr(spi,false,(uint8_t*) H1_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
-}
-
-}
-
-key=-1;
-
-while ((key!=12)|!(h1==2 & key<4) |((h1<2) & ((key==0) | (key>0))) ){
-
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
-
-}
-
-
-if(key==12){
-
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-mcp23017_set_pins_PortA_high(MCPA0);
-taskYIELD();
-
-}
-
-time[1]= time[1] | key;
-
-	for (int j=0;j<8;j++){
-		
-		for(int i=0;i<8;i++){
-			if((font_bits[key][j]&(1<<i))>0){
-				timeH2_pointers_to_send[i][j]=TIMECOLOR;
-				}
-			else{
-				timeH2_pointers_to_send[i][j]=H2_time_SCH_pointers[i][j];
-
-				}
-		}
-
-spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH2, sizeof(array_of_commands_ISR_SCH_timeH2), true);
-
-for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
-spi_transmit_isr(spi,false,(uint8_t*) H2_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
-}
-
-}
-key=-1;
- 
-while ((key!=12)|(key>6) | (key<0)) {
-
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
-
-}
-
-
-if(key==12){
-
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-mcp23017_set_pins_PortA_high(MCPA0);
-taskYIELD();
-
-}
-
-
-time[0]= key<<1;
-
-	for (int j=0;j<8;j++){
-		
-		for(int i=0;i<8;i++){
-			if((font_bits[key][j]&(1<<i))>0){
-				timeM1_pointers_to_send[i][j]=TIMECOLOR;
-				}
-			else{
-				timeM1_pointers_to_send[i][j]=M1_time_SCH_pointers[i][j];;
-
-				}
-		}
-	}
-
-spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeM1, sizeof(array_of_commands_ISR_SCH_timeM1), true);
-
-for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
-spi_transmit_isr(spi,false,(uint8_t*) M1_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
-}
-
-
-key=-1;
-
-while ((key!=12)|(key>9) | (key<0)) {
-
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
-
-}
-
-
-if(key==12){
-
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-mcp23017_set_pins_PortA_high(MCPA0);
-taskYIELD();
-
-}
-
-time[0]= time[1] | key;
-
-	for (int j=0;j<8;j++){
-		
-		for(int i=0;i<8;i++){
-			if((font_bits[key][j]&(1<<i))>0){
-				timeM2_pointers_to_send[i][j]=TIMECOLOR;
-				}
-			else{
-				timeM2_pointers_to_send[i][j]=M2_time_SCH_pointers[i][j];
-
-				}
-		}
-	}
-
-spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeM2, sizeof(array_of_commands_ISR_SCH_timeM2), true);
-
-for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
-spi_transmit_isr(spi,false,(uint8_t*) M2_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
-}
-
-ic2_setup_alarm1(time[0], time[1]);
-
-vTaskDelay(pdMS_TO_TICKS(500));
-
-display_update_SET_SCHEDULER_TIME2();
 }
 
 else{
@@ -1258,8 +1510,9 @@ else{
 
 mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
-
+continue;
 }
+
 }
 }
 
@@ -1295,9 +1548,9 @@ uint8_t time[3];
 
 for (;;){
 
-key=pressed_key(MCPA0);
+key=pressed_key(MCPA0,-1);
 if (key!=11){
-taskYIELD();
+continue;
 
 }
 
@@ -1311,13 +1564,37 @@ spi_transmit_isr(spi,false,(uint8_t*) setup_time_bkg_pointers[i], (STCASETH-STCA
 
 key=-1;
 
-while ((key!=12)|(key!=1)|key!=2 ){
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
+while ((key!=12)&&(key!=1)&&(key!=2) ){
+
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
 
 }
 
@@ -1325,28 +1602,42 @@ if(key==1){
 
 key=-1;
 
-while ((key!=12)|(key>2)|key<0 ){
+while ((key!=12)&&(( key>2)||(key<0 ))){
 
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
 
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
 }
 
-if(key==12){
+if((key>0)&(key<3)){
 
-xTaskNotifyGive(xtaskHandleReset_BKG_Time);
-mcp23017_set_pins_PortA_high(MCPA0);
-taskYIELD();
-
-}
-
-else if((key>0)&(key<3)){
-
-time[2]= key<<1;
+time[2]= key*10;
 
 
 	for (int j=0;j<8;j++){
@@ -1385,14 +1676,37 @@ spi_transmit_isr(spi,false,(uint8_t*) H1_time_pointers[i], (H1TCASETH-H1TCASETL)
 
 key=-1;
 
-while ((key!=12)|!(h1==2 & key<4) |((h1<2) & ((key==0) | (key>0))) ){
+while ((key!=12) && !(h1==2 && key<4) && !((h1<2) && (key>=0)) ){
 
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
 
 }
 
@@ -1403,10 +1717,10 @@ xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 mcp23017_set_pins_PortA_high(MCPA0);
 
 taskYIELD();
-
+continue;
 }
 
-time[2]= time[2] | key;
+time[2]+= key;
 
 	for (int j=0;j<8;j++){
 		
@@ -1430,14 +1744,37 @@ spi_transmit_isr(spi,false,(uint8_t*) timeH2_pointers_to_send[i], (H1TCASETH-H1T
 
 key=-1; 
 
-while ((key!=12)|(key>6) | (key<0)) {
+while ((key!=12) && (key>6) && (key<0)) {
 
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
 
 }
 
@@ -1447,11 +1784,11 @@ if(key==12){
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
-
+continue;
 }
 
 
-time[1]= key<<1;
+time[1]= key * 10;
 
 	for (int j=0;j<8;j++){
 		
@@ -1474,14 +1811,37 @@ spi_transmit_isr(spi,false,(uint8_t*) timeM1_pointers_to_send[i], (H1TCASETH-H1T
 
 key=-1;
 
-while ((key!=12)|(key>9) | (key<0)) {
+while ((key!=12) && (key>6) && (key<0)) {
 
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
 
 }
 
@@ -1491,10 +1851,10 @@ if(key==12){
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
-
+continue;
 }
 
-time[1]= time[1] | key;
+time[1]+= key;
 
 	for (int j=0;j<8;j++){
 		
@@ -1518,14 +1878,37 @@ spi_transmit_isr(spi,false,(uint8_t*) timeM2_pointers_to_send[i], (H1TCASETH-H1T
 
 key=-1;
 
-while ((key!=12)|(key>6) | (key<0)) {
+while ((key!=12) && (key>6) && (key<0)) {
 
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
 
 }
 
@@ -1534,10 +1917,10 @@ if(key==12){
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
-
+continue;
 }
 
-time[0]= key<<1;
+time[0]= key*10;
 
 
 	for (int j=0;j<8;j++){
@@ -1562,14 +1945,37 @@ spi_transmit_isr(spi,false,(uint8_t*) timeS1_pointers_to_send[i], (H1TCASETH-H1T
 
 key=-1;
 
-while ((key!=12)|(key>9) | (key<0)) {
+while ((key!=12) && (key>6) && (key<0)) {
 
-mcp23017_set_pins_PortA_high(MCPA0);
-key=pressed_key(MCPA0);
-mcp23017_set_pins_PortA_high(MCPA1);
-key=pressed_key(MCPA1);
-mcp23017_set_pins_PortA_high(MCPA2);
-key=pressed_key(MCPA2);
+taskENTER_CRITICAL(0);
+		key=pressed_key(MCPA0,1);
+		mcp23017_set_pins_PortA_high(MCPA0);
+		ets_delay_us(100);
+
+  		if (key != -1) {
+			continue;} 
+
+		key=pressed_key(MCPA1,1);
+
+		mcp23017_set_pins_PortA_high(MCPA1);
+		ets_delay_us(100);
+
+  		if (key != -1){
+ 			continue; }
+
+		key=pressed_key(MCPA2,1);
+		mcp23017_set_pins_PortA_high(MCPA2);
+		ets_delay_us(100);
+
+  			if (key != -1){ 
+			continue;}
+
+taskEXIT_CRITICAL(0);
+
+		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
+		key=pressed_key(-1,-1);
+		mcp23017_set_pins_PortA_high(0);
+		ets_delay_us(100);
 
 }
 
@@ -1579,12 +1985,12 @@ if(key==12){
 xTaskNotifyGive(xtaskHandleReset_BKG_Time);
 mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
-
+continue;
 }
 
-else if(key>0|key==0){
+else if(key>0 || key==0){
 
-time[0]= time[0] | key;
+time[0]+= key;
 
 	for (int j=0;j<8;j++){
 		
@@ -1618,7 +2024,7 @@ display_update_SET_SCHEDULER_TIME();
 else{
 mcp23017_set_pins_PortA_high(MCPA0);
 taskYIELD();
-
+continue;
 }
 }
 }
