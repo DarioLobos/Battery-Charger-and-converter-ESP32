@@ -124,14 +124,14 @@ int  pressed_key (int col, int delayms ){
 
 uint32_t row=-1;
 
-uint8_t key=-1;
+int key=-1;
 
 if(delayms==-1){
 xTaskNotifyWait(0, 0, &row, portMAX_DELAY);
 }
 else{
 
-xTaskNotifyWait(0, 0, &row, pdTICKS_TO_MS(delayms));
+xTaskNotifyWait(0, 0, &row, pdMS_TO_TICKS(delayms));
 
 }
 

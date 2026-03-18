@@ -690,7 +690,7 @@ vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1000));
 void display_update_SET_SCHEDULER_TIME(void){
 
 int key;
-
+int prevkey=-1;
 int h1=-1;
 
 //time[0]=seconds time[1]=minutes time[0]=seconds
@@ -709,35 +709,46 @@ key=-1;
 
 while ((key< 0)){
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -791,35 +802,46 @@ key=-1;
 
 while ((key!=12)&&(key!=1)&&(key!=2) ){
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block1;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block1;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block1;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block1:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -827,37 +849,48 @@ if(key==1){
 
 key=-1;
 
-while ((key!=12)&&(key>2)&&(key<0) ){
+while ((key != 12) && (key > 2 || key < 0)){
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block3;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block3;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block3;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block3:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -907,38 +940,50 @@ spi_transmit_isr(spi,false,(uint8_t*) H1_time_SCH_pointers[i], (SCHD1TCASETH-SCH
 }
 
 key=-1;
+prevkey=-1;
 
-while ((key!=12) && !(h1==2 && key<4) && !((h1<2) && (key>=0)) ){
+while ((key != 12) && !((h1 < 2 && key >= 0 && key <= 9) || (h1 == 2 && key >= 0 && key <= 3))) {
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block2;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block2;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block2;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block2:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -965,6 +1010,7 @@ time[1]+= key;
 
 				}
 		}
+}
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH2, sizeof(array_of_commands_ISR_SCH_timeH2), true);
 
@@ -972,40 +1018,52 @@ for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) H2_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
 }
 
-}
-key=-1;
- 
-while ((key!=12)&& (key>6) && (key<0)) {
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+key=-1;
+prevkey=-1;
+ 
+while ((key != 12) && (key > 5 || key < 0)) {
+
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block4;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block4;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block4;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block4:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -1043,38 +1101,50 @@ spi_transmit_isr(spi,false,(uint8_t*) M1_time_SCH_pointers[i], (SCHD1TCASETH-SCH
 
 
 key=-1;
+prevkey=-1;
 
-while ((key!=12) && (key>6) && (key<0)) {
+while ((key!=12) && ((key>9) || (key<0)))  {
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block5;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block5;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block5;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block5:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -1151,76 +1221,100 @@ spi_transmit_isr(spi,false,(uint8_t*) timeD1_pointers_to_send[i], (SCHTIMERASETH
 }
 
 key=-1;
+prevkey=-1;
 
 while ((key!=12)&&(key!=1)&&(key!=2)){
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block6;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block6;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block6;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block6:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
 if(key==1){
 
 key=-1;
+prevkey=-1;
 
 while ((key!=12)&&((key>2)||(key<0))){
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block7;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block7;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block7;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block7:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -1271,38 +1365,50 @@ spi_transmit_isr(spi,false,(uint8_t*) H1_time_SCH_pointers[i], (SCHTIMERASETH-SC
 
 
 key=-1;
+prevkey=-1;
 
 while ((key!=12) && !(h1==2 && key<4) && !((h1<2) &&  (key>=0)) ){
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block8;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block8;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block8;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block8:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -1341,39 +1447,6 @@ spi_transmit_isr(spi,false,(uint8_t*) timeH2_pointers_to_send[i], (SCHTIMERASETH
  
 key=-1;
 
-while ((key!=12)&&(key>6) && (key<0)) {
-
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
-		mcp23017_set_pins_PortA_high(MCPA0);
-		ets_delay_us(100);
-
-  		if (key != -1) {
-			continue;} 
-
-		key=pressed_key(MCPA1,1);
-
-		mcp23017_set_pins_PortA_high(MCPA1);
-		ets_delay_us(100);
-
-  		if (key != -1){
- 			continue; }
-
-		key=pressed_key(MCPA2,1);
-		mcp23017_set_pins_PortA_high(MCPA2);
-		ets_delay_us(100);
-
-  			if (key != -1){ 
-			continue;}
-
-taskEXIT_CRITICAL(0);
-
-		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
-		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
-
-}
 
 
 if(key==12){
@@ -1407,38 +1480,50 @@ spi_transmit_isr(spi,false,(uint8_t*) timeM1_pointers_to_send[i], (SCHTIMERASETH
 }
 
 key=-1;
+prevkey=-1;
 
-while ((key!=12)&&(key>9) &&(key<0)) {
+while ((key!=12)&& ((key>9) || (key<0))) {
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block9;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block9;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block9;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block9:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -1538,7 +1623,8 @@ spi_transmit_isr(spi,false,(uint8_t*) set_time_pointers[i], (STCASETH-STCASETL)*
 
 void display_update_SET_TIME(void * pvparameters){
 
-int key;
+int key=-1;
+int prevkey=-1;
 
 int h1=-1;
 
@@ -1547,6 +1633,9 @@ int h1=-1;
 uint8_t time[3];
 
 for (;;){
+
+mcp23017_set_pins_PortA_high(MCPA0);
+ets_delay_us(500);
 
 key=pressed_key(MCPA0,-1);
 if (key!=11){
@@ -1566,76 +1655,100 @@ key=-1;
 
 while ((key!=12)&&(key!=1)&&(key!=2) ){
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
 if(key==1){
 
 key=-1;
+prevkey=-1;
 
-while ((key!=12)&&(( key>2)||(key<0 ))){
+while ((key!=12)&&(( key>2)||(key<1 ))){
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block10;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block10;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block10;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block10:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
+
 }
 
-if((key>0)&(key<3)){
+if((key>0)&&(key<3)){
 
 time[2]= key*10;
 
@@ -1675,38 +1788,50 @@ spi_transmit_isr(spi,false,(uint8_t*) H1_time_pointers[i], (H1TCASETH-H1TCASETL)
 }
 
 key=-1;
+prevkey=-1;
 
-while ((key!=12) && !(h1==2 && key<4) && !((h1<2) && (key>=0)) ){
+while ((key != 12) && !((h1 < 2 && key >= 0 && key <= 9) || (h1 == 2 && key >= 0 && key <= 3))){
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block11;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block11;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block11;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block11:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -1733,6 +1858,7 @@ time[2]+= key;
 
 				}
 		}
+}
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeH2, sizeof(array_of_commands_ISR_timeH2), true);
 
@@ -1740,41 +1866,53 @@ for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeH2_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
 }
 
-}
+
 
 key=-1; 
+prevkey=-1;
 
-while ((key!=12) && (key>6) && (key<0)) {
+while ((key!=12) && ((key>5) || (key<0))) {
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block12;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block12;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block12;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block12:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -1810,38 +1948,50 @@ spi_transmit_isr(spi,false,(uint8_t*) timeM1_pointers_to_send[i], (H1TCASETH-H1T
 }
 
 key=-1;
+prevkey=-1;
 
-while ((key!=12) && (key>6) && (key<0)) {
+while ((key != 12) && (key > 9 || key < 0)){
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block13;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block13;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block13;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block13:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -1877,38 +2027,50 @@ spi_transmit_isr(spi,false,(uint8_t*) timeM2_pointers_to_send[i], (H1TCASETH-H1T
 
 
 key=-1;
+prevkey=-1;
 
-while ((key!=12) && (key>6) && (key<0)) {
+while ((key != 12) && (key > 9 || key < 0)) {
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block14;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block14;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block14;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block14:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
@@ -1944,38 +2106,50 @@ spi_transmit_isr(spi,false,(uint8_t*) timeS1_pointers_to_send[i], (H1TCASETH-H1T
 
 
 key=-1;
+prevkey=-1;
 
-while ((key!=12) && (key>6) && (key<0)) {
+while ((key!=12) && ((key>9) || (key<0))) {
 
-taskENTER_CRITICAL(0);
-		key=pressed_key(MCPA0,1);
+vTaskSuspendAll();
+xTaskNotifyStateClear(NULL);
+
 		mcp23017_set_pins_PortA_high(MCPA0);
+		key=pressed_key(MCPA0,2);
 		ets_delay_us(100);
 
   		if (key != -1) {
+		if (prevkey==key){goto block15;}
+		prevkey= key;	
+		xTaskResumeAll();
 			continue;} 
 
-		key=pressed_key(MCPA1,1);
-
 		mcp23017_set_pins_PortA_high(MCPA1);
+		key=pressed_key(MCPA1,2);
 		ets_delay_us(100);
 
   		if (key != -1){
+		if (prevkey==key){goto block15;}
+		prevkey= key;	
+		xTaskResumeAll();
  			continue; }
 
-		key=pressed_key(MCPA2,1);
 		mcp23017_set_pins_PortA_high(MCPA2);
+		key=pressed_key(MCPA2,2);
 		ets_delay_us(100);
 
-  			if (key != -1){ 
+  			if (key != -1){
+			if (prevkey==key){goto block15;}
+			prevkey= key;	
+			xTaskResumeAll();
 			continue;}
 
-taskEXIT_CRITICAL(0);
+block15:
+xTaskResumeAll();
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
-		mcp23017_set_pins_PortA_high(0);
-		ets_delay_us(100);
+		prevkey=-1;
+		ets_delay_us(500);
 
 }
 
