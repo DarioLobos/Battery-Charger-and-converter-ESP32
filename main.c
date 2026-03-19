@@ -60,16 +60,16 @@ esp_err_t ret = nvs_flash_init();
 
 
 	//timer_mosfet_start in mcpwm_init.c
-    xTaskCreatePinnedToCore(timer_mosfet_start, "Mosfet_signal_start", 4096 ,NULL , TASK_PRIO_3, NULL, CORE0);
+    xTaskCreatePinnedToCore(timer_mosfet_start, "Mosfet_signal_start", 2048 ,NULL , TASK_PRIO_3, NULL, CORE0);
 
 	//adc_continous_DC_reading in adc_function.c
-    xTaskCreatePinnedToCore(adc_continous_DC_reading, "adc_readingDC", 4096 ,NULL , TASK_PRIO_2, NULL, CORE0);
+    xTaskCreatePinnedToCore(adc_continous_DC_reading, "adc_readingDC", 3072 ,NULL , TASK_PRIO_2, NULL, CORE0);
 
 	//adc_one_shoot_AC_reading in adc_function.c
-    xTaskCreatePinnedToCore(adc_one_shoot_AC_reading, "adc_readingAC", 4096 ,NULL , TASK_PRIO_2, NULL, CORE0);
+    xTaskCreatePinnedToCore(adc_one_shoot_AC_reading, "adc_readingAC", 3072 ,NULL , TASK_PRIO_2, NULL, CORE0);
 
 	//booster_selection in mcpwm_init.c
-	xTaskCreatePinnedToCore(booster_selection, "booster_selectionl", 4096 ,NULL , TASK_PRIO_3, &booster_control_task, CORE1);
+	xTaskCreatePinnedToCore(booster_selection, "booster_selectionl", 3072 ,NULL , TASK_PRIO_3, &booster_control_task, CORE1);
     
   	//device3_scheduler in display_functions.c
 	xTaskCreatePinnedToCore(devices_scheduler, "device3_scheduler", 4096 ,NULL , TASK_PRIO_2, &booster_control_task, CORE1);
@@ -88,22 +88,22 @@ esp_err_t ret = nvs_flash_init();
 	xTaskCreatePinnedToCore(display_update_RESET_BKG_TIME, "display_update_RESET_BKG_TIME", (STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_1,&xtaskHandleReset_BKG_Time, tskNO_AFFINITY);
 
   	//display_update_AC in display_functions.c
-	xTaskCreatePinnedToCore(display_update_AC, "display_update_AC", 2*(ROWAC*COLAC*sizeof(uint16_t))+1024 ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(display_update_AC, "display_update_AC", 2*(ROWAC*COLAC*sizeof(uint16_t))+2048 ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
 
   	//display_update_DC in display_functions.c
-	xTaskCreatePinnedToCore(display_update_DC, "display_update_AC", 2*(ROWDC*COLDC*sizeof(uint16_t))+1024 ,NULL , TASK_PRIO_0,&xtaskHandledisplay_update_DC , tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(display_update_DC, "display_update_AC", 2*(ROWDC*COLDC*sizeof(uint16_t))+2048 ,NULL , TASK_PRIO_0,&xtaskHandledisplay_update_DC , tskNO_AFFINITY);
 	
   	//display_update_TIME in display_functions.c
-	xTaskCreatePinnedToCore(display_update_TIME, "display_update_TIME", 2*(ROWTIME*COLTIME*sizeof(uint16_t))+1024 ,NULL , TASK_PRIO_0,&xtaskHandledisplay_update_DC , tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(display_update_TIME, "display_update_TIME", 2*(ROWTIME*COLTIME*sizeof(uint16_t))+2048 ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
 
 // wifi_aware_publish in aware.c
-	xTaskCreatePinnedToCore(wifi_aware_publish,     "socket_srv",     4096,     NULL,     TASK_PRIO_1,NULL,     tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(wifi_aware_publish,     "socket_srv",     6144,     NULL,     TASK_PRIO_1,NULL,     tskNO_AFFINITY);
 
 	// wifi_aware_socket_task in aware.c
-	xTaskCreatePinnedToCore(wifi_aware_socket_task,     "socket_srv",     4096,     NULL,     TASK_PRIO_1,&xserver_task,     tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(wifi_aware_socket_task,     "socket_srv",     8192,     NULL,     TASK_PRIO_1,&xserver_task,     tskNO_AFFINITY);
 
 	// nan_discovery_task_task in aware.c
-	xTaskCreatePinnedToCore(nan_discovery_task,     "socket_srv",     4096,     NULL,     TASK_PRIO_1,&xdiscovery_task,     tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(nan_discovery_task,     "socket_srv",     6144,     NULL,     TASK_PRIO_1,&xdiscovery_task,     tskNO_AFFINITY);
 
 	// nan_discovery_task_task in aware.c
 	xTaskCreatePinnedToCore(devices_scheduler_phone,     "socket_srv",     4096,     NULL,     TASK_PRIO_1,&xdiscovery_task,     tskNO_AFFINITY);
