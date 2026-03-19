@@ -434,12 +434,36 @@ void runDevice(char *rx_buffer,int len){
 }
 
 void setupTime(char *rx_buffer,int len){
-//pending
+if (len != 3) {return;}
+
+uint8_t seconds = rx_buffer[0];
+
+uint8_t minutes = rx_buffer[1];
+
+uint8_t hour = rx_buffer[2];
+
+ic2_setup_time(seconds, minutes, hour);
+
 }
 
 void chargerScheduler(char *rx_buffer,int len){
-//pending
+
+if (len != 4) {return;}
+ 
+uint8_t hourOn = rx_buffer[0];
+
+uint8_t minuteOn = rx_buffer[1];
+
+uint8_t hourOff = rx_buffer[2];
+
+uint8_t minuteOff = rx_buffer[3];
+
+ic2_setup_alarm1(minuteOn, hourOn);
+
+ic2_setup_alarm2(minuteOff, hourOff);
+
 }
+
 
 void sendStatus(int soc){
 
