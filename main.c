@@ -63,6 +63,8 @@ esp_err_t ret = nvs_flash_init();
    // 1. Create the Mutex
     spi_mutex = xSemaphoreCreateMutex();
 
+    block_time_mutex = xSemaphoreCreateMutex();
+
         // 2. Now create your tasks
         xTaskCreatePinnedToCore(display_update_TIME, "display_update_TIME", 2*(ROWTIME*COLTIME*sizeof(uint16_t))+4096,
 		 NULL, TASK_PRIO_0, &xtaskHandledisplay_update_TIME, tskNO_AFFINITY);

@@ -112,6 +112,9 @@ static uint8_t * pointer_to_commands_isr_BANNERSCH=&array_of_commands_ISR_BANNER
 
 SemaphoreHandle_t spi_mutex = NULL;
 
+SemaphoreHandle_t block_time_mutex = NULL;
+
+
 
 static void psi_setup(){
 	const char *TAG = "error/message:";
@@ -528,6 +531,7 @@ xLastWakeTime = xTaskGetTickCount();
 
 for(;;){
 
+xSemaphoreTake(block_time_mutex, portMAX_DELAY);
 
 ic2_read_time();
 
@@ -726,6 +730,8 @@ prev_M2 = received_digit;
 
 }
 xSemaphoreGive(spi_mutex);
+
+xSemaphoreGive(block_time_mutex);
 
 
 xTaskNotifyGive(xtaskHandledisplay_update_DC);
@@ -1736,6 +1742,11 @@ uint8_t time[3];
 
 for (;;){
 
+xSemaphoreTake(block_time_mutex, portMAX_DELAY);
+
+xTaskNotifyGive(xtaskHandledisplay_update_DC);
+xTaskNotifyGive(xtaskHandledisplay_update_AC);
+
 mcp23017_set_pins_PortA_high(MCPA0);
 ets_delay_us(500);
 
@@ -2307,6 +2318,7 @@ for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeS2_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
 }
 xSemaphoreGive(spi_mutex); 
+xSemaphoreGive(block_time_mutex);
 
 }
 
