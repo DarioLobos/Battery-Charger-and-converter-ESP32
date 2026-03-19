@@ -1744,8 +1744,6 @@ for (;;){
 
 xSemaphoreTake(block_time_mutex, portMAX_DELAY);
 
-xTaskNotifyGive(xtaskHandledisplay_update_DC);
-xTaskNotifyGive(xtaskHandledisplay_update_AC);
 
 mcp23017_set_pins_PortA_high(MCPA0);
 ets_delay_us(500);
@@ -1806,6 +1804,8 @@ xTaskNotifyStateClear(NULL);
 
 block:
 xTaskResumeAll();
+		xTaskNotifyGive(xtaskHandledisplay_update_DC);
+		xTaskNotifyGive(xtaskHandledisplay_update_AC);
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
@@ -1856,6 +1856,8 @@ xTaskNotifyStateClear(NULL);
 
 block10:
 xTaskResumeAll();
+		xTaskNotifyGive(xtaskHandledisplay_update_DC);
+		xTaskNotifyGive(xtaskHandledisplay_update_AC);
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
@@ -1950,6 +1952,8 @@ xTaskNotifyStateClear(NULL);
 
 block11:
 xTaskResumeAll();
+		xTaskNotifyGive(xtaskHandledisplay_update_DC);
+		xTaskNotifyGive(xtaskHandledisplay_update_AC);
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
@@ -2033,6 +2037,8 @@ xTaskNotifyStateClear(NULL);
 
 block12:
 xTaskResumeAll();
+		xTaskNotifyGive(xtaskHandledisplay_update_DC);
+		xTaskNotifyGive(xtaskHandledisplay_update_AC);
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
@@ -2114,6 +2120,8 @@ xTaskNotifyStateClear(NULL);
 
 block13:
 xTaskResumeAll();
+		xTaskNotifyGive(xtaskHandledisplay_update_DC);
+		xTaskNotifyGive(xtaskHandledisplay_update_AC);
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
@@ -2196,6 +2204,8 @@ xTaskNotifyStateClear(NULL);
 
 block14:
 xTaskResumeAll();
+		xTaskNotifyGive(xtaskHandledisplay_update_DC);
+		xTaskNotifyGive(xtaskHandledisplay_update_AC);
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
@@ -2277,6 +2287,8 @@ xTaskNotifyStateClear(NULL);
 
 block15:
 xTaskResumeAll();
+		xTaskNotifyGive(xtaskHandledisplay_update_DC);
+		xTaskNotifyGive(xtaskHandledisplay_update_AC);
 
 		mcp23017_set_pins_PortA_high(MCPA0|MCPA1|MCPA2);
 		key=pressed_key(-1,-1);
