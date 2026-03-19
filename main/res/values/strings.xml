@@ -16,15 +16,6 @@
     <string name="previous">Previous</string>
     <string name="IP_MAC">IP Address</string>
     <string name="HELP_settings">Help for setting</string>
-    <string name="device1">Device 1</string>
-    <string name="device2">Device 2</string>
-    <string name="device3">Device 3</string>
-    <string name="device4">Device 4</string>
-    <string name="device5">Device 5</string>
-    <string name="device6">Device 6</string>
-    <string name="device7">Device 7</string>
-    <string name="device8">Device 8</string>
-    <string name="device9">Device 9</string>
     <string name="ON">ON</string>
     <string name="OFF">OFF</string>
     <string name="voltages">Converter Voltages</string>
@@ -62,4 +53,28 @@
     <string name="wifiReceived">received message</string>
     <string name="checkConnection">Check connection</string>
     <string name="matchFilter">WIFI match filter</string>
+    <string name="PeerPortSet">Peer port set</string>
+    <string name="restart">Please confirm to restart and update changes.</string>
+    <string name="restartTitle">Warning: Application will restart.</string>
+    <string name="save">Save &amp; restart </string>
+    <string name="dismiss">Dismiss</string>
+    <string name="sendSchedulers">Send Schedulers</string>
+    <string name="requestVoltages">Request Update Voltages</string>
+    <string name="device1">Device 1 =</string>
+    <string name="device2">Device 2 =</string>
+    <string name="device3">Device 3 =</string>
+    <string name="AC">A.C. ~ =</string>
+    <string name="battery">Battery =</string>
+    <string name="sensed">Voltages measured by the microcontroller: </string>
+    <string name="connectionError">ERROR: Please check connection</string>
+    <string name="permissionError">ERROR: Application have no permission granted</string>
+    <string name="sendCharger">Send charger scheduler to ESP32</string>
+    <string name="chargerName">Charger time scheduler</string>
+    <string name="clock">Update ESP32 Time</string>
+    <string name="clockSent">Current time sent to Esp32</string>
+    <string name="chargerSent">Scheduler for charger sent</string>
+    <string name="schedulerSent">Scheduler for Devices sent</string>
+    <string name="remote">Control remote action was sent.</string>
+
+
 </resources>

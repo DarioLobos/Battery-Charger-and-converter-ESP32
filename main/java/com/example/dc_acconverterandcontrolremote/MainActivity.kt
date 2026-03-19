@@ -1,70 +1,92 @@
 package com.example.dc_acconverterandcontrolremote
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
-//import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.dc_acconverterandcontrolremote.DevicesDatabase.Companion.DevicesDataBase
+import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.dc_acconverterandcontrolremote.ui.theme.DC_ACConverterAndControlRemoteTheme
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
 
-    //private val model: DeviceSchedulerViewModel by viewModels()
-    val viewModel = DeviceSchedulerViewModel()
-    val aware = WifiAware(applicationContext, viewModel)
+    // 1. Correct ViewModel Initialization
+    // This uses the Factory we built to safely get the Repo from the REAL Application instance
+    private val viewModel: DeviceSchedulerViewModel by viewModels {
+        DeviceSchedulerViewModel.Factory
+    }
+
+    // 2. Lateinit for WifiAware
+    // We must initialize this in onCreate after the ViewModel is ready
+    private lateinit var aware: WifiAware
 
     @RequiresPermission(Manifest.permission.ACCESS_WIFI_STATE)
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
+
+        // 3. Initialize WifiAware using the system-provided applicationContext
+        aware = WifiAware(applicationContext, viewModel)
+
         enableEdgeToEdge()
         setContent {
-
             DC_ACConverterAndControlRemoteTheme {
-                DatabaseApplication()
-                val context = LocalContext.current
-                val modelComposeM3 = viewModel<DeviceSchedulerViewModel>()
-                modelComposeM3.devicesDao = DevicesDataBase(applicationContext).daoDevices()
-                MainApp(context, modelComposeM3, aware)
+                // Pass the lifecycle-managed viewModel and aware instance
+                MainApp(LocalContext.current, viewModel, aware)
             }
         }
-
-
     }
 
     @RequiresPermission(Manifest.permission.ACCESS_WIFI_STATE)
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onResume() {
         super.onResume()
+        lifecycleScope.launch {
+            // 2. Observe your discoverySettings (Match Filter + DB Status)
+            viewModel.discoverySettings.collectLatest { settings ->
 
-        // these are pending to define
-        var macFilter: List<ByteArray> =
-            listOf(viewModel.setMacStringToAddress(viewModel.MAC_ADDRESS_REMOTE.toString()))
-        // these are pending to define pending define IPV6forphone
-        lateinit var serviceSpecificInfo: ByteArray
+                // 3. WAIT: Only start if storage/DB are verified 'Ready'
+                if (settings.isReady) {
+                    // If a session already exists (e.g., from a settings change), close it first
+                    if (aware.wifiAwareSession != null) {
+                        aware.closeSession()
+                        delay(250)
+                    }
 
-        GlobalScope.launch {
-            aware.startWiFiAwareandSubscribe()
+                    // 4. Start only with verified data
+                    if (ActivityCompat.checkSelfPermission(
+                            applicationContext,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                            applicationContext,
+                            Manifest.permission.NEARBY_WIFI_DEVICES
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        Toast.makeText(applicationContext, "WIFI permission failed. Try again.", Toast.LENGTH_SHORT).show()
+                    }
+                    aware.startWiFiAwareandSubscribe()
+                }
+            }
         }
     }
 
     override fun onPause() {
         super.onPause()
-        GlobalScope.launch {
-                aware.closeSession()
+        // The lifecycleScope will cancel the 'collectLatest' above automatically,
+        // but we still manually close the hardware session to be safe.
+        lifecycleScope.launch {
+            aware.closeSession()
         }
     }
 }

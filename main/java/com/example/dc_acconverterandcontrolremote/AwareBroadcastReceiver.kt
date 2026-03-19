@@ -59,8 +59,11 @@ class AwareBroadcastReceiver(val context: Context, val viewModel: DeviceSchedule
 
                 override fun onIdentityChanged(mac: ByteArray?) {
                     super.onIdentityChanged(mac)
-                    viewModel.setMacAddress(mac)
+                        if (!(mac!!.isEmpty())){
+                            viewModel.MacSetLaunchRemote(viewModel.setMacAddressToString(mac!!))
+                        }
                 }
+
 
             },null)
         }

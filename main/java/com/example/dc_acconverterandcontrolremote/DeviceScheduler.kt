@@ -23,296 +23,289 @@ import androidx.compose.material3.TimePicker
 //import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
-import androidx.lifecycle.MutableLiveData
-//import androidx.lifecycle.Observer
-//import androidx.lifecycle.ViewModel
+import androidx.compose.ui.unit.sp
+import java.util.Calendar
 import kotlin.Int
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 
 @Composable
-fun DataFromViewModel(model: DeviceSchedulerViewModel) {
-
-    val context: Context = LocalContext.current
-
-    //val device_numberObserver = Observer<Int> {}
-    //val on_or_offObserver = Observer<String> {}
-    //val deviceObserver = Observer<String> {}
-    //val hourSetObserver = Observer<Int> {}
-    //val minuteSet = Observer<Int> {}
-
-
-    val deviceScheduler= DeviceScheduler_Screen(
-        model,context, model.hourForPicker, model.minuteForPicker, model::TimesToshow,
-        model::setselectedTime, model::selectedDays, model::deviceName)
-
-    deviceScheduler.deviceScheduler_Screen()
+fun TimePickerDialog(
+    onDismissRequest: () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    dismissButton: @Composable () -> Unit,
+    content: @Composable () -> Unit
+) {   AlertDialog(
+    onDismissRequest = onDismissRequest,
+    confirmButton = confirmButton,
+    dismissButton = dismissButton,
+    text = { content() }
+)
 
 }
 
-
-class EditTextONOFF (val context: Context,val device_number: Int,
-val on_or_off:String,val modifier: Modifier,val
-hourForPicker: Int,val minuteForPicker: Int,
-val TimesToshow:(device_number: Int, on_or_off: String, string_onoff: String)-> String?,
-val setselectedTime:(hourToSeT: Int,minuteToSet: Int,device_number: Int,on_or_off: String,string_onoff: String)-> String) {
-
-    @OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun editTextONOFF() {
-
-        val device_number_keeper: Int = device_number
-        val on_or_off_keeper: String = on_or_off
-        val string_onoff: String = stringResource(R.string.ON)
-        var timeToShow by remember { mutableStateOf("") }
-        timeToShow = TimesToshow(device_number_keeper, on_or_off_keeper, string_onoff)
-            ?: stringResource(R.string.click)
-//        var selectedTime: TimePickerState? by remember { mutableStateOf(null) }
-        var showTimePicker by remember { mutableStateOf(true) }
-
-        val timePickerState = rememberTimePickerState(
-            initialHour = hourForPicker,
-            initialMinute = minuteForPicker,
-            is24Hour = true
-        )
-
-        Box(propagateMinConstraints = false) {
-            Column(
-                modifier = Modifier
-                    .wrapContentSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                showTimePicker = true
-
-                TextField(
-                    readOnly = false,
-                    enabled = false,
-                    value = timeToShow,
-                    onValueChange = { /* ... */ },
-                    label = { Text(on_or_off) },
-                    singleLine = true,
-                    placeholder = { Text(stringResource(R.string.click)) },
-                    modifier = modifier.clickable {
-                        showTimePicker = true
-                    }
-                )
+    fun EditTextONOFF(context: Context, device_number: Int,
+                       on_or_off : Boolean, modifier: Modifier,
+                      viewModel : DeviceSchedulerViewModel) {
 
 
-                if (showTimePicker) {
+    val calendar = Calendar.getInstance()
+    val timePickerState = rememberTimePickerState(
+        initialHour = calendar.get(Calendar.HOUR_OF_DAY),
+        initialMinute = calendar.get(Calendar.MINUTE),
+        is24Hour = true
+    )
 
-                    TimePicker(
-                        state = timePickerState,
+    val string_onoff: String =
+        if (on_or_off) stringResource(R.string.ON) else stringResource(R.string.OFF)
 
-                        Modifier.fillMaxSize()
-                    )
-                    Button(
+    val timeToShow = viewModel.TimesToshow(device_number, on_or_off) ?: ""
 
-                        onClick = {
-                            showTimePicker = false
-                            Toast.makeText(context, R.string.setTimeCancel, Toast.LENGTH_SHORT)
-                                .show()
-                        })
-                    {
-                        Text(stringResource(R.string.cancel))
-                    }
+    var showTimePicker by remember { mutableStateOf(false) }
 
-                    Button(
-                        onClick = {
 
-                            setselectedTime(
-                                timePickerState.hour, timePickerState.minute,
-                                device_number_keeper, on_or_off_keeper, string_onoff
+    Box(propagateMinConstraints = false) {
+        Column(
+            modifier = Modifier
+                .wrapContentSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            showTimePicker = false
+
+            TextField(
+                readOnly = true,
+                enabled = false,
+                value = timeToShow,
+                onValueChange = { /* ... */ },
+                label = { Text(string_onoff) },
+                singleLine = true,
+                placeholder = { Text(stringResource(R.string.click)) },
+                modifier = modifier.clickable {
+                    showTimePicker = true
+                }
+            )
+
+
+            if (showTimePicker) {
+                TimePickerDialog(
+                    onDismissRequest = { showTimePicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            viewModel.setselectedTime(
+                                timePickerState.hour,
+                                timePickerState.minute,
+                                device_number,
+                                on_or_off
                             )
                             showTimePicker = false
                             Toast.makeText(context, R.string.setTimeRecorded, Toast.LENGTH_SHORT)
                                 .show()
-                        }) {
-                        Text(stringResource(R.string.confirm))
-
-
+                        }) { Text(stringResource(R.string.confirm)) }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showTimePicker = false }) {
+                            Text(stringResource(R.string.cancel))
+                        }
                     }
+                ) {
+                    TimePicker(state = timePickerState)
                 }
             }
         }
     }
-
 }
 
-class ConstrainWithEditTextOnOff(val context: Context, val device_number: Int,
-                                 val hourForPicker: Int, val  minuteForPicker: Int,
-                                 val TimesToshow:(device_number: Int, on_or_off: String, string_onoff: String)-> String?,
-                                 val setselectedTime:(hourToSeT: Int,minuteToSet: Int,device_number: Int,on_or_off: String,string_onoff: String)-> String,
-                                 val selectedDays:(daysselected: Int, option: Int, selectedOptions: Boolean)->Unit,
-                                 val deviceName:(devicenbr:Int )->String) {
-
-    @Composable
-    fun constrainWithEditTextOnOff() {
-
-        val device_number_keeper: Int = device_number
-
-        ConstraintLayout(
-            Modifier
-                .wrapContentSize()
-                .background(color = MaterialTheme.colorScheme.background)
-        ) {
-
-            val on: String = stringResource(R.string.ON)
-            val off: String = stringResource(R.string.OFF)
-            val (editOn, editOff, titleName, timeOn, timeOff, daysOfWeek) = createRefs()
-
-            val modifierText: Modifier = Modifier
-                .constrainAs(titleName) {
-                    top.linkTo(parent.top, margin = 10.dp)
-                    bottom.linkTo(editOff.top, margin = 10.dp)
-                    centerHorizontallyTo(parent)
-                }
-
-            val modifierTextON: Modifier = Modifier
-                .constrainAs(timeOn) {
-                    top.linkTo(titleName.bottom, margin = 5.dp)
-                    bottom.linkTo(daysOfWeek.top, margin = 5.dp)
-                    end.linkTo(editOn.start)
-                }
-
-            val modifierEditOn: Modifier = Modifier
-                .constrainAs(editOn) {
-                    top.linkTo(titleName.bottom, margin = 5.dp)
-                    bottom.linkTo(daysOfWeek.top, margin = 5.dp)
-                    start.linkTo(timeOn.end)
-                    end.linkTo(editOff.start)
-                }
-
-            val modifierTextOFF: Modifier = Modifier
-                .constrainAs(timeOff) {
-                    top.linkTo(titleName.bottom, margin = 5.dp)
-                    bottom.linkTo(daysOfWeek.top, margin = 5.dp)
-                    start.linkTo(editOn.end)
-                    end.linkTo(editOff.start)
-                }
-
-            val modifierEditOff: Modifier = Modifier
-                .constrainAs(editOff) {
-                    top.linkTo(titleName.bottom, margin = 5.dp)
-                    bottom.linkTo(daysOfWeek.top, margin = 5.dp)
-                    start.linkTo(timeOff.end)
-                }
+@Composable
+fun DeviceControlCard( context: Context, device_number: Int, deviceName: String,
+                       viewModel : DeviceSchedulerViewModel ) {
 
 
-            val modifierRButtonDaysOfWeek = Modifier
-                .wrapContentSize()
-                .constrainAs(daysOfWeek) {
-                    top.linkTo(editOn.bottom, margin = 5.dp)
-                    bottom.linkTo(parent.bottom, margin = 5.dp)
-                    centerHorizontallyTo(parent)
-                }
+    ConstraintLayout(
+        Modifier
+            .wrapContentSize()
+            .background(color = MaterialTheme.colorScheme.background)
+    ) {
 
+        val (editOn, editOff, titleName, timeOn, timeOff, daysOfWeek) = createRefs()
 
-            Text(
-                text = deviceName(device_number_keeper),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = modifierText
-            )
-            Text(
-                text = stringResource(R.string.timeOn),
-                color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = modifierTextON
-            )
-            Text(
-                text = stringResource(R.string.timeOFF),
-                color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = modifierTextOFF
-            )
-            val editTextOn: EditTextONOFF = EditTextONOFF(
-                context, device_number, on,
-                modifierEditOn, hourForPicker, minuteForPicker,
-                TimesToshow, setselectedTime
-            )
-            editTextOn.editTextONOFF()
-
-            val editTextOff: EditTextONOFF = EditTextONOFF(
-                context, device_number, off,
-                modifierEditOff, hourForPicker,
-                minuteForPicker, TimesToshow, setselectedTime)
-
-            editTextOff.editTextONOFF()
-            createHorizontalChain(
-                editOn, editOff,
-                chainStyle = ChainStyle.SpreadInside
-            )
-
-            val options = listOf(
-                stringResource(R.string.Sun), stringResource(R.string.Mon),
-                stringResource(R.string.Tue), stringResource(R.string.Wed),
-                stringResource(R.string.Thu), stringResource(R.string.Fri),
-                stringResource(R.string.Sat)
-            )
-
-            val selectedOptions =
-                remember { mutableStateListOf(false, false, false, false, false, false, false) }
-
-            MultiChoiceSegmentedButtonRow(modifier = modifierRButtonDaysOfWeek) {
-                options.forEachIndexed { index, label ->
-                    SegmentedButton(
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = options.size
-                        ),
-                        checked = selectedOptions[index],
-                        onCheckedChange = {
-                            selectedOptions[index] = !selectedOptions[index]
-                            selectedDays(device_number_keeper, index, selectedOptions[index])
-                        },
-                        label = { options[index] }
-
-                    )
-                }
+        val modifierText: Modifier = Modifier
+            .constrainAs(titleName) {
+                top.linkTo(parent.top, margin = 10.dp)
+                bottom.linkTo(editOff.top, margin = 10.dp)
+                centerHorizontallyTo(parent)
             }
 
-        }
+        val modifierTextON: Modifier = Modifier
+            .constrainAs(timeOn) {
+                top.linkTo(titleName.bottom, margin = 5.dp)
+                start.linkTo(parent.start)
+                bottom.linkTo(editOn.top, margin = 5.dp)
+                end.linkTo(timeOff.start)
+            }
+
+        val modifierEditOn: Modifier = Modifier
+            .constrainAs(editOn) {
+                top.linkTo(timeOn.bottom, margin = 5.dp)
+                bottom.linkTo(daysOfWeek.top, margin = 5.dp)
+                start.linkTo(parent.start)
+                end.linkTo(editOff.start)
+            }
+
+        val modifierTextOFF: Modifier = Modifier
+            .constrainAs(timeOff) {
+                top.linkTo(titleName.bottom, margin = 5.dp)
+                bottom.linkTo(editOff.top, margin = 5.dp)
+                start.linkTo(timeOn.end)
+                end.linkTo(parent.end)
+            }
+
+        val modifierEditOff: Modifier = Modifier
+            .constrainAs(editOff) {
+                top.linkTo(timeOff.bottom, margin = 5.dp)
+                bottom.linkTo(daysOfWeek.top, margin = 5.dp)
+                start.linkTo(editOn.end)
+                end.linkTo(parent.end)
+            }
 
 
-    }
-}
-
-class DeviceScheduler_Screen(val model: DeviceSchedulerViewModel,val context: Context,
-                             val hourForPicker: Int, val minuteForPicker: Int,
-                             val TimesToshow:(device_number: Int, on_or_off: String, string_onoff: String)-> String?,
-                             val setselectedTime:(hourToSeT: Int,minuteToSet: Int,device_number: Int,on_or_off: String,string_onoff: String)-> String,
-                             val selectedDays:(daysselected: Int, option: Int, selectedOptions: Boolean)->Unit,
-                             val deviceName:(devicenbr:Int )->String) {
-
-    val constrainWithEditText = mutableListOf<ConstrainWithEditTextOnOff>()
-
-    @Composable
-    fun deviceScheduler_Screen() {
+        val modifierRButtonDaysOfWeek = Modifier
+            .wrapContentSize()
+            .constrainAs(daysOfWeek) {
+                top.linkTo(editOn.bottom, margin = 5.dp)
+                bottom.linkTo(parent.bottom, margin = 5.dp)
+                centerHorizontallyTo(parent)
+            }
 
 
-        val devicesListSize: Int = model.deviceList()?.size ?: 0
+        Text(
+            text = deviceName,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = modifierText
+        )
+        Text(
+            text = stringResource(R.string.timeOn),
+            color = MaterialTheme.colorScheme.onPrimary,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = modifierTextON
+        )
+        Text(
+            text = stringResource(R.string.timeOFF),
+            color = MaterialTheme.colorScheme.onPrimary,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = modifierTextOFF
+        )
+
+        EditTextONOFF(context, device_number, true, modifierEditOn, viewModel)
+
+        EditTextONOFF(context, device_number, false, modifierEditOff, viewModel)
+
+        createHorizontalChain(
+            timeOn, timeOff,
+            chainStyle = ChainStyle.SpreadInside
+        )
+
+        createHorizontalChain(
+            editOn, editOff,
+            chainStyle = ChainStyle.SpreadInside
+        )
 
 
+        val options = listOf(
+            stringResource(R.string.Sun), stringResource(R.string.Mon),
+            stringResource(R.string.Tue), stringResource(R.string.Wed),
+            stringResource(R.string.Thu), stringResource(R.string.Fri),
+            stringResource(R.string.Sat)
+        )
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2), Modifier
-                .wrapContentSize()
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            items(devicesListSize) {
-                constrainWithEditText.add(
-                    ConstrainWithEditTextOnOff(
-                        context, it,
-                         hourForPicker, minuteForPicker,
-                        TimesToshow, setselectedTime, selectedDays, deviceName
-                    )
+        val selectedOptions =
+            remember { mutableStateListOf(false, false, false, false, false, false, false) }
+
+        MultiChoiceSegmentedButtonRow(modifier = modifierRButtonDaysOfWeek) {
+            options.forEachIndexed { index, label ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = options.size
+                    ),
+                    checked = selectedOptions[index],
+                    onCheckedChange = {
+                        selectedOptions[index] = !selectedOptions[index]
+                        viewModel.selectedDays(device_number, index, selectedOptions[index])
+                    },
+                    label = { options[index] }
+
                 )
-                constrainWithEditText[it].constrainWithEditTextOnOff()
             }
         }
     }
+}
+
+
+
+
+@Composable
+fun DeviceScheduler_Screen( context: Context,
+                            viewModel : DeviceSchedulerViewModel, aware: WifiAware ) {
+    // 1. Monitor the signal
+    val isReady by viewModel.isInitialized.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+
+    // 2. Capture the SNAPSHOT once initialization is finished
+    val devices = remember(isReady) {
+        if (isReady) viewModel.allDevices.value else emptyList()
+    }
+
+    // 3. Trigger the Main() init routine
+    LaunchedEffect(Unit) {
+        if (!viewModel.isInitialized.value) {
+            viewModel.devicesInit()
+        }
+    }
+
+    if (!isReady) {
+        CircularProgressIndicator()
+    } else {
+        // Now it's safe to use devices.size and devices[index]
+        // because they won't change until the next app restart.
+        Column(
+            modifier = Modifier
+                .wrapContentSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val text = stringResource(R.string.sendSchedulers)
+
+            ElevatedButton(
+                onClick = {
+                    viewModel.sendSchedulerToWiFI(aware)
+                          },
+                modifier = Modifier.wrapContentSize(),
+                shape = MaterialTheme.shapes.extraLarge
+            ) {
+                Text(text, fontSize = 20.sp)
+            }
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2), Modifier
+                    .wrapContentSize()
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                contentPadding = PaddingValues(
+                    bottom = 100.dp // High enough gap for your Floating Button
+                )
+            ) {
+                items(devices.size) {
+                    DeviceControlCard(context, it, devices[it].device_name!!, viewModel)
+
+                }
+            }
+        }
+    }
+
 }

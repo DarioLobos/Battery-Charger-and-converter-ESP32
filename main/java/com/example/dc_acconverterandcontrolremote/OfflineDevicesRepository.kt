@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.flowOf
 
 class OfflineDevicesRepository(private val itemDao: DaoDevices) : DevicesRepository {
 
-    override fun getAllDevicesStream(): Flow<List<Devices>> = flowOf( itemDao.getAll())
+    override fun getAllDevicesStream(): Flow<List<Devices>> = itemDao.getAllFlow()
 
     override fun getDeviceStream(deviceId: Int): Flow<Devices?> = itemDao.getItem(deviceId)
 
