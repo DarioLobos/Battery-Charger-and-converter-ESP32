@@ -106,7 +106,7 @@ esp_err_t ret = nvs_flash_init();
 	xTaskCreatePinnedToCore(nan_discovery_task,     "socket_srv",     6144,     NULL,     TASK_PRIO_1,&xdiscovery_task,     tskNO_AFFINITY);
 
 	// nan_discovery_task_task in aware.c
-	xTaskCreatePinnedToCore(devices_scheduler_phone,     "socket_srv",     4096,     NULL,     TASK_PRIO_1,&xdiscovery_task,     tskNO_AFFINITY);
+	xTaskCreatePinnedToCore(devices_scheduler_phone,     "socket_srv",     4096,     NULL,     TASK_PRIO_1,NULL,     tskNO_AFFINITY);
 
 
 }
