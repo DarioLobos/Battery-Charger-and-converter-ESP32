@@ -5,6 +5,7 @@
  *      Author: dario Lobos
  */
 
+#include "freertos/idf_additions.h"
 #include "freertos/projdefs.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -50,7 +51,7 @@ static uint8_t * pointer_to_commands_isr_timeH2=&array_of_commands_ISR_timeH2[0]
 
 static uint8_t array_of_commands_ISR_timeD1[7]={CASET,D1TCASETL,D1TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
 
-static uint8_t * pointer_to_commands_isr_timeD1=&array_of_commands_ISR_timeH2[0];
+static uint8_t * pointer_to_commands_isr_timeD1=&array_of_commands_ISR_timeD1[0];
 
 static uint8_t array_of_commands_ISR_timeM1[7]={CASET,M1TCASETL,M1TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
 
@@ -62,7 +63,7 @@ static uint8_t * pointer_to_commands_isr_timeM2=&array_of_commands_ISR_timeM2[0]
 
 static uint8_t array_of_commands_ISR_timeD2[7]={CASET,D2TCASETL,D2TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
 
-static uint8_t * pointer_to_commands_isr_timeD2=&array_of_commands_ISR_timeH2[0];
+static uint8_t * pointer_to_commands_isr_timeD2=&array_of_commands_ISR_timeD2[0];
 
 static uint8_t array_of_commands_ISR_timeS1[7]={CASET,S1TCASETL,S1TCASETH,RASET,TIMERASETL,TIMERASETH,RAMWR};
 
@@ -83,7 +84,7 @@ static uint8_t * pointer_to_commands_isr_SCH_timeH2=&array_of_commands_ISR_SCH_t
 
 static uint8_t array_of_commands_ISR_SCH_timeD1[7]={CASET,SCHD1TCASETL,SCHD1TCASETH,RASET,SCHTIMERASETL,SCHTIMERASETH,RAMWR};
 
-static uint8_t * pointer_to_commands_isr_SCH_timeD1=&array_of_commands_ISR_timeH2[0];
+static uint8_t * pointer_to_commands_isr_SCH_timeD1=&array_of_commands_ISR_SCH_timeD1[0];
 
 static uint8_t array_of_commands_ISR_SCH_timeM1[7]={CASET,SCHM1TCASETL,SCHM1TCASETH,RASET,SCHTIMERASETL,SCHTIMERASETH,RAMWR};
 
@@ -108,6 +109,8 @@ static uint8_t * pointer_to_commands_isr_BANNERST=&array_of_commands_ISR_BANNERS
 static uint8_t array_of_commands_ISR_BANNERSCH[7]={CASET,STCASETL,STCASETH,RASET,STRASETL,STRASETH,RAMWR};
 
 static uint8_t * pointer_to_commands_isr_BANNERSCH=&array_of_commands_ISR_BANNERSCH[0];
+
+SemaphoreHandle_t spi_mutex = NULL;
 
 
 static void psi_setup(){
@@ -149,6 +152,7 @@ for (int i = 0; i < ROWAC; i++) {
 for(;;){
 
 ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
 
 digits=-1;
 
@@ -249,14 +253,17 @@ digits++;
 				}
 		}
 	}
-spi_transmit_isr(spi,true,pointer_to_commands_isr_ac, sizeof(array_of_commands_ISR_AC), true);
 
+ xSemaphoreTake(spi_mutex, portMAX_DELAY);
+       
+spi_transmit_isr(spi,true,pointer_to_commands_isr_ac, sizeof(array_of_commands_ISR_AC), true);
 
 for(int i =0; i<8;i++){
 spi_transmit_isr(spi,false, (uint8_t*) ac_pointers_to_send[i], (ACCASETH-ACCASETL)*16, true);
  }
 
-xTaskNotifyGive(xtaskHandledisplay_update_DC);
+ xSemaphoreGive(spi_mutex);      
+
 
 }
 }
@@ -369,6 +376,7 @@ digits++;
 				}
 		}
 	}
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_dc, sizeof(array_of_commands_ISR_AC), true);
 
@@ -376,6 +384,10 @@ spi_transmit_isr(spi,true,pointer_to_commands_isr_dc, sizeof(array_of_commands_I
 for (int i=0; i<8;i++){
 spi_transmit_isr(spi,false, (uint8_t*)dc_pointers_to_send[i], (DCCASETH-DCCASETL)*16, true);
  }
+xSemaphoreGive(spi_mutex); 
+
+xTaskNotifyGive(xtaskHandledisplay_update_AC);
+
 
 }
 }
@@ -479,12 +491,14 @@ for (int i = 0; i < ROWTIME; i++) {
 				}
 		}
 	}
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeD1, sizeof(array_of_commands_ISR_timeD1), true);
 
 for (int i =0; i<8; i++){
 spi_transmit_isr(spi,false, (uint8_t*) timeD1_pointers_to_send[i], D1TCASETH*D1TCASETL+16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 	for (int j=0;j<8;j++){
 		
@@ -499,17 +513,21 @@ spi_transmit_isr(spi,false, (uint8_t*) timeD1_pointers_to_send[i], D1TCASETH*D1T
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeD2, sizeof(array_of_commands_ISR_timeD2), true);
 
 for (int i =0; i<8; i++){
 spi_transmit_isr(spi,false, (uint8_t*) timeD2_pointers_to_send[i], D2TCASETH*D2TCASETL+16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
+
+xLastWakeTime = xTaskGetTickCount();
 
 
 for(;;){
 
-xLastWakeTime = xTaskGetTickCount();
 
 ic2_read_time();
 
@@ -519,6 +537,7 @@ ic2_read_time();
 received_digit=*received_time[2]-*received_time[2]%10/10;
 
 if ((received_digit>0) & (prev_H1!= received_digit)){
+
 
 	for (int j=0;j<8;j++){
 		
@@ -533,11 +552,15 @@ if ((received_digit>0) & (prev_H1!= received_digit)){
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
 
 for (int i =0; i<8; i++){
 spi_transmit_isr(spi,false, (uint8_t*) timeH1_pointers_to_send[i], H1TCASETH*H1TCASETL+16, true);
 }
+
+xSemaphoreGive(spi_mutex);
 
 prev_H1 = received_digit;
 
@@ -560,11 +583,16 @@ if (prev_H2!= received_digit){
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeH2, sizeof(array_of_commands_ISR_timeH2), true);
 
 for (int i =0; i<8; i++){
 spi_transmit_isr(spi,false, (uint8_t*) timeH2_pointers_to_send[i], H2TCASETH*H2TCASETL+16, true);
 }
+
+xSemaphoreGive(spi_mutex);
+
 
 prev_H2 = received_digit;
 
@@ -589,11 +617,16 @@ if (prev_M1!= received_digit){
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeM1, sizeof(array_of_commands_ISR_timeM1), true);
 
 for (int i =0; i<8; i++){
 spi_transmit_isr(spi,false, (uint8_t*) timeM1_pointers_to_send[i], M1TCASETH*M1TCASETL+16, true);
 }
+
+xSemaphoreGive(spi_mutex);
+
 
 prev_M1 = received_digit;
 
@@ -616,11 +649,16 @@ if (prev_M2!= received_digit){
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeM2, sizeof(array_of_commands_ISR_timeM2), true);
 
 for (int i =0; i<8; i++){
 spi_transmit_isr(spi,false, (uint8_t*) timeM2_pointers_to_send[i], M2TCASETH*M2TCASETL+16, true);
 }
+
+xSemaphoreGive(spi_mutex);
+
 
 prev_M2 = received_digit;
 
@@ -644,11 +682,16 @@ if (prev_S1!= received_digit){
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeS1, sizeof(array_of_commands_ISR_timeS1), true);
 
 for (int i =0; i<8; i++){
 spi_transmit_isr(spi,false, (uint8_t*) timeS1_pointers_to_send[i], S1TCASETH*S1TCASETL+16, true);
 }
+
+xSemaphoreGive(spi_mutex);
+
 
 prev_S1 = received_digit;
 
@@ -671,6 +714,8 @@ if (prev_S2!= received_digit){
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeS2, sizeof(array_of_commands_ISR_timeS2), true);
 
 for (int i =0; i<8; i++){
@@ -680,6 +725,10 @@ spi_transmit_isr(spi,false, (uint8_t*) timeS2_pointers_to_send[i], S2TCASETH*S2T
 prev_M2 = received_digit;
 
 }
+xSemaphoreGive(spi_mutex);
+
+
+xTaskNotifyGive(xtaskHandledisplay_update_DC);
 
 vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1000));
 
@@ -700,10 +749,14 @@ uint8_t time[2];
 for(;;){
 
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
 for (int i=0; i < (STRASETH-STRASETL); i++){
 spi_transmit_isr(spi,false, (uint8_t*) seton_time1_bkg_pointers[i],(STCASETH-STCASETL)*16 , true);
 }
+xSemaphoreGive(spi_mutex);
+
 
 key=-1;
 
@@ -763,11 +816,15 @@ continue;
 
 if(key==11){
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
 
 for (int i=0; i < (STRASETH-STRASETL); i++){
 spi_transmit_isr(spi,false, (uint8_t*) scheduleroff_bkg_pointers[i],(STCASETH-STCASETL)*16 , true);
 }
+
+xSemaphoreGive(spi_mutex);
 
 alarm_OFF();
 vTaskDelay(pdTICKS_TO_MS(1000));
@@ -791,12 +848,17 @@ continue;
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeD1, sizeof(array_of_commands_ISR_SCH_timeD1), true);
 
 
 for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeD1_pointers_to_send[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
 }
+
+xSemaphoreGive(spi_mutex);
+
 
 key=-1;
 
@@ -921,21 +983,29 @@ time[1]= key*10;
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
 
 for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeH1_pointers_to_send[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex);
+
 
 h1=key;
 }
 else if (key==0){
+
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
 
 for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) H1_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
 }
+
+xSemaphoreGive(spi_mutex);
 
 }
 
@@ -1012,11 +1082,15 @@ time[1]+= key;
 		}
 }
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH2, sizeof(array_of_commands_ISR_SCH_timeH2), true);
 
 for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) H2_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
 }
+
+xSemaphoreGive(spi_mutex); 
 
 
 key=-1;
@@ -1093,11 +1167,14 @@ time[0]= key*10;
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeM1, sizeof(array_of_commands_ISR_SCH_timeM1), true);
 
 for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) M1_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 
 key=-1;
@@ -1172,11 +1249,14 @@ time[0]+= key;
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeM2, sizeof(array_of_commands_ISR_SCH_timeM2), true);
 
 for(int i=0; i<(SCHTIMERASETH-SCHTIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) M2_time_SCH_pointers[i], (SCHD1TCASETH-SCHD1TCASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 ic2_setup_alarm1(time[0], time[1]);
 
@@ -1192,6 +1272,7 @@ int h1=-1;
 uint8_t time[2];
 
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
 
@@ -1199,6 +1280,7 @@ spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_com
 for (int i=0; i < (STRASETH-STRASETL); i++){
 spi_transmit_isr(spi,false, (uint8_t*) setoff_time_bkg_pointers[i],(STCASETH-STCASETL)*16 , true);
 }
+xSemaphoreGive(spi_mutex); 
 
 	for (int j=0;j<8;j++){
 		
@@ -1213,12 +1295,16 @@ spi_transmit_isr(spi,false, (uint8_t*) setoff_time_bkg_pointers[i],(STCASETH-STC
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeD1, sizeof(array_of_commands_ISR_SCH_timeD1), true);
 
 
 for(int i=0; i<(SCHD1TCASETH-SCHD1TCASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeD1_pointers_to_send[i], (SCHTIMERASETH-SCHTIMERASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
+
 
 key=-1;
 prevkey=-1;
@@ -1343,12 +1429,14 @@ time[1]= key*10;
 				}
 		}
 	}
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH1, sizeof(array_of_commands_ISR_SCH_timeH1), true);
 
 for(int i=0; i<(SCHD1TCASETH-SCHD1TCASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeH1_pointers_to_send[i], (SCHTIMERASETH-SCHTIMERASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 
 h1=key;
@@ -1436,11 +1524,14 @@ time[1]+= key;
 				}
 		}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeH2, sizeof(array_of_commands_ISR_SCH_timeH2), true);
 
 for(int i=0; i<(SCHD1TCASETH-SCHD1TCASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeH2_pointers_to_send[i], (SCHTIMERASETH-SCHTIMERASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 
 }
@@ -1472,12 +1563,14 @@ time[0]= key*10;
 				}
 		}
 	}
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeM1, sizeof(array_of_commands_ISR_SCH_timeM1), true);
 
 for(int i=0; i<(SCHD1TCASETH-SCHD1TCASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeM1_pointers_to_send[i], (SCHTIMERASETH-SCHTIMERASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 key=-1;
 prevkey=-1;
@@ -1550,12 +1643,14 @@ time[0]+= key;
 				}
 		}
 	}
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_SCH_timeM2, sizeof(array_of_commands_ISR_SCH_timeM2), true);
 
 for(int i=0; i<(SCHD1TCASETH-SCHD1TCASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeM2_pointers_to_send[i], (SCHTIMERASETH-SCHTIMERASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 ic2_setup_alarm2(time[0], time[1]);
 
@@ -1564,11 +1659,15 @@ alarm_ON();
 
 vTaskDelay(pdMS_TO_TICKS(500));
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERSCH, sizeof(array_of_commands_ISR_BANNERSCH), true);
 
 for (int i=0; i < (STRASETH-STRASETL); i++){
 spi_transmit_isr(spi,false, (uint8_t*) scheduler_bkg_pointers[i],(STCASETH-STCASETL)*16 , true);
 }
+
+xSemaphoreGive(spi_mutex); 
 
 
 vTaskDelay(pdMS_TO_TICKS(1000));
@@ -1608,12 +1707,15 @@ for(;;){
 
 ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERST, sizeof(array_of_commands_ISR_BANNERST), true);
 
 
 for(int i=0; i<(STRASETH-STRASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) set_time_pointers[i], (STCASETH-STCASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 
 }
@@ -1643,12 +1745,15 @@ continue;
 
 }
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_BANNERST, sizeof(array_of_commands_ISR_BANNERST), true);
 
 
 for(int i=0; i<(STRASETH-STRASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) setup_time_bkg_pointers[i], (STCASETH-STCASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 
 key=-1;
@@ -1766,12 +1871,15 @@ time[2]= key*10;
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
 
 
 for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeH1_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 
 
@@ -1779,11 +1887,15 @@ h1=key;
 }
 else if (key==0){
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeH1, sizeof(array_of_commands_ISR_timeH1), true);
 
 for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) H1_time_pointers[i], (H1TCASETH-H1TCASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
+
 
 }
 
@@ -1859,12 +1971,14 @@ time[2]+= key;
 				}
 		}
 }
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeH2, sizeof(array_of_commands_ISR_timeH2), true);
 
 for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeH2_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 
 
@@ -1940,12 +2054,14 @@ time[1]= key * 10;
 				}
 		}
 	}
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeM1, sizeof(array_of_commands_ISR_timeM1), true);
 
 for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeM1_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 key=-1;
 prevkey=-1;
@@ -2019,11 +2135,14 @@ time[1]+= key;
 		}
 	}
 
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
+
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeM2, sizeof(array_of_commands_ISR_timeM2), true);
 
 for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeM2_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 
 key=-1;
@@ -2097,12 +2216,14 @@ time[0]= key*10;
 				}
 		}
 	}
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeS1, sizeof(array_of_commands_ISR_timeS1), true);
 
 for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeS1_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 
 key=-1;
@@ -2178,12 +2299,14 @@ time[0]+= key;
 				}
 		}
 	}
+xSemaphoreTake(spi_mutex, portMAX_DELAY); 
 
 spi_transmit_isr(spi,true,pointer_to_commands_isr_timeS2, sizeof(array_of_commands_ISR_timeS2), true);
 
 for(int i=0; i<(TIMERASETH-TIMERASETL); i++){
 spi_transmit_isr(spi,false,(uint8_t*) timeS2_pointers_to_send[i], (H1TCASETH-H1TCASETL)*16, true);
 }
+xSemaphoreGive(spi_mutex); 
 
 }
 

@@ -23,6 +23,8 @@
 TaskHandle_t xtaskHandleDisplay= NULL;
 TaskHandle_t xtaskHandleReset_BKG_Time = NULL;
 TaskHandle_t xtaskHandledisplay_update_DC = NULL;
+TaskHandle_t xtaskHandledisplay_update_AC = NULL;
+TaskHandle_t xtaskHandledisplay_update_TIME = NULL;
 spi_device_handle_t spi;
 
 

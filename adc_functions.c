@@ -37,6 +37,7 @@ static TaskHandle_t display_update_task;
 static TaskHandle_t dc_pwm_control_task;
 
 
+
 int * pointer_ADC_results_AC;
 
 adc_digi_output_data_t * data_DC_wrapper_pointer;   

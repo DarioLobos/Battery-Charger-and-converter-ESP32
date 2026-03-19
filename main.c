@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include "aware.c"
+#include "freertos/semphr.h"
 
 
 void app_main(void)
@@ -59,6 +60,21 @@ esp_err_t ret = nvs_flash_init();
     NULL ,TASK_PRIO_4, &xtaskHandleFrame, CORE1);
 
 
+   // 1. Create the Mutex
+    spi_mutex = xSemaphoreCreateMutex();
+
+        // 2. Now create your tasks
+        xTaskCreatePinnedToCore(display_update_TIME, "display_update_TIME", 2*(ROWTIME*COLTIME*sizeof(uint16_t))+4096,
+		 NULL, TASK_PRIO_0, &xtaskHandledisplay_update_TIME, tskNO_AFFINITY);
+        xTaskCreatePinnedToCore(display_update_AC, "display_update_AC", 2*(ROWAC*COLAC*sizeof(uint16_t))+4096,
+		 NULL, TASK_PRIO_0, &xtaskHandledisplay_update_AC, tskNO_AFFINITY);
+		xTaskCreatePinnedToCore(display_update_DC, "display_update_DC", 2*(ROWDC*COLDC*sizeof(uint16_t))+4096 ,
+		NULL , TASK_PRIO_0,&xtaskHandledisplay_update_DC , tskNO_AFFINITY);
+	    
+    // ... rest of your tasks ...
+
+
+
 	//timer_mosfet_start in mcpwm_init.c
     xTaskCreatePinnedToCore(timer_mosfet_start, "Mosfet_signal_start", 2048 ,NULL , TASK_PRIO_3, NULL, CORE0);
 
@@ -88,13 +104,6 @@ esp_err_t ret = nvs_flash_init();
 	xTaskCreatePinnedToCore(display_update_RESET_BKG_TIME, "display_update_RESET_BKG_TIME", (STROWARRAY*STCOLARRAY*sizeof(uint16_t))+4096 ,NULL , TASK_PRIO_1,&xtaskHandleReset_BKG_Time, tskNO_AFFINITY);
 
   	//display_update_AC in display_functions.c
-	xTaskCreatePinnedToCore(display_update_AC, "display_update_AC", 2*(ROWAC*COLAC*sizeof(uint16_t))+2048 ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
-
-  	//display_update_DC in display_functions.c
-	xTaskCreatePinnedToCore(display_update_DC, "display_update_AC", 2*(ROWDC*COLDC*sizeof(uint16_t))+2048 ,NULL , TASK_PRIO_0,&xtaskHandledisplay_update_DC , tskNO_AFFINITY);
-	
-  	//display_update_TIME in display_functions.c
-	xTaskCreatePinnedToCore(display_update_TIME, "display_update_TIME", 2*(ROWTIME*COLTIME*sizeof(uint16_t))+2048 ,NULL , TASK_PRIO_0,NULL , tskNO_AFFINITY);
 
 // wifi_aware_publish in aware.c
 	xTaskCreatePinnedToCore(wifi_aware_publish,     "socket_srv",     6144,     NULL,     TASK_PRIO_1,NULL,     tskNO_AFFINITY);
